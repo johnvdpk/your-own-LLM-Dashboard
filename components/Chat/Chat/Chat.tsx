@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { Message } from '@/types/chat';
 import MessageComponent from '../Message/Message';
 import ChatInput from '../ChatInput/ChatInput';
-import ModelSelector from '@/components/ModelSelector/ModelSelector/ModelSelector';
 import styles from './Chat.module.css';
 
 export default function Chat() {
@@ -101,7 +100,7 @@ export default function Chat() {
   return (
     <div className={styles.chatContainer}>
       <div className={styles.greeting}>
-        <span className={styles.greetingIcon}>✦</span>
+        <span className={styles.greetingIcon}>👋</span>
         <h1 className={styles.greetingText}>{getGreeting()}, John</h1>
       </div>
 
@@ -127,8 +126,12 @@ export default function Chat() {
       </div>
 
       <div className={styles.inputSection}>
-        <ChatInput onSend={sendMessage} disabled={isLoading} />
-        <ModelSelector selectedModel={selectedModel} onModelChange={setSelectedModel} />
+        <ChatInput 
+          onSend={sendMessage} 
+          disabled={isLoading}
+          selectedModel={selectedModel}
+          onModelChange={setSelectedModel}
+        />
       </div>
     </div>
   );
