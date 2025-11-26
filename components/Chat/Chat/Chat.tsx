@@ -1,18 +1,24 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+
 import { Message } from '@/types/chat';
-import MessageComponent from '../Message/Message';
-import ChatInput from '../ChatInput/ChatInput';
+import { Message as MessageComponent } from '@/components/Chat/Message/Message';
+import { ChatInput } from '@/components/Chat/ChatInput/ChatInput';
+
 import styles from './Chat.module.css';
 
-export default function Chat() {
+export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('anthropic/claude-3.5-sonnet');
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState<string>('');
 
-  const sendMessage = async (content: string) => {
+  /**
+   * Sends a message to the chat API and handles the streaming response with typewriter effect
+   * @param content - The message content to send
+   */
+  const sendMessage = async (content: string): Promise<void> => {
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
@@ -52,12 +58,13 @@ export default function Chat() {
         throw new Error('Invalid response from server');
       }
 
-      // Typewriter effect: add words one by one
+      // Typewriter effect: simulate streaming by adding words one by one
+      // This creates a more engaging user experience than showing the full message at once
       const fullText = data.message.content;
       const words = fullText.split(' ');
       let currentText = '';
 
-      // Faster typewriter effect (20ms per word)
+      // Display words with 20ms delay between each word for smooth animation
       for (let i = 0; i < words.length; i++) {
         await new Promise((resolve) => setTimeout(resolve, 20));
         currentText += (i > 0 ? ' ' : '') + words[i];
@@ -74,12 +81,16 @@ export default function Chat() {
 
       setMessages((prev) => [...prev, assistantMessage]);
       setStreamingMessage('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error sending message:', error);
+      const errorMessageText = error instanceof Error 
+        ? error.message 
+        : 'Failed to send message. Please check your API key and try again.';
+      
       const errorMessage: Message = {
         id: Date.now().toString(),
         role: 'assistant',
-        content: `Error: ${error.message || 'Failed to send message. Please check your API key and try again.'}`,
+        content: `Error: ${errorMessageText}`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -89,8 +100,11 @@ export default function Chat() {
     }
   };
 
-  // Get greeting based on time of day
-  const getGreeting = () => {
+  /**
+   * Get greeting based on time of day
+   * @returns Greeting string ('Morning', 'Afternoon', or 'Evening')
+   */
+  const getGreeting = (): string => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Morning';
     if (hour < 18) return 'Afternoon';

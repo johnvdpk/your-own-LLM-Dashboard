@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import styles from './ChatInput.module.css';
-import ModelSelector from '@/components/ModelSelector/ModelSelector/ModelSelector';
 
+import { ModelSelector } from '@/components/ModelSelector/ModelSelector/ModelSelector';
+
+import styles from './ChatInput.module.css';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -12,10 +13,17 @@ interface ChatInputProps {
   onModelChange: (model: string) => void;
 }
 
-export default function ChatInput({ onSend, disabled, selectedModel, onModelChange }: ChatInputProps) {
+/**
+ * ChatInput component that handles user message input and submission
+ * @param onSend - Callback function called when message is submitted
+ * @param disabled - Whether the input is disabled
+ * @param selectedModel - Currently selected AI model
+ * @param onModelChange - Callback function called when model is changed
+ */
+export function ChatInput({ onSend, disabled, selectedModel, onModelChange }: ChatInputProps) {
   const [input, setInput] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (input.trim() && !disabled) {
       onSend(input.trim());

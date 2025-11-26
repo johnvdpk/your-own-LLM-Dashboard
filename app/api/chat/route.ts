@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { openRouter, getOpenRouterHeaders, ChatMessage } from '@/lib/openrouter';
 
-export async function POST(request: NextRequest) {
+/**
+ * POST /api/chat
+ * Handles chat message requests and forwards them to OpenRouter API
+ */
+export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Check if API key is set
     if (!process.env.OPENROUTER_API_KEY) {
@@ -12,13 +17,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { messages, model } = await request.json();
+    const body = await request.json();
+    const { messages, model } = body;
 
+    // Validate request body structure
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
         { error: 'Messages array is required' },
         { status: 400 }
       );
+    }
+
+    // Validate message structure
+    for (const msg of messages) {
+      if (!msg.role || !['user', 'assistant', 'system'].includes(msg.role)) {
+        return NextResponse.json(
+          { error: 'Invalid message role. Must be "user", "assistant", or "system"' },
+          { status: 400 }
+        );
+      }
+      if (typeof msg.content !== 'string') {
+        return NextResponse.json(
+          { error: 'Message content must be a string' },
+          { status: 400 }
+        );
+      }
     }
 
     console.log('Sending request to OpenRouter:', { model: model || 'openai/gpt-4o', messageCount: messages.length });
@@ -48,17 +71,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: completion.choices[0].message,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('OpenRouter API error:', error);
-    console.error('Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-    });
+    
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Failed to get completion';
+    
+    const errorDetails = error instanceof Error 
+      ? {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+        }
+      : {};
+
+    console.error('Error details:', errorDetails);
+    
     return NextResponse.json(
       { 
-        error: error.message || 'Failed to get completion',
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        error: errorMessage,
+        details: process.env.NODE_ENV === 'development' && error instanceof Error 
+          ? error.stack 
+          : undefined,
       },
       { status: 500 }
     );

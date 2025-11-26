@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+
 import styles from './ModelSelector.module.css';
 
 interface ModelSelectorProps {
@@ -56,13 +57,18 @@ const models: Model[] = [
   },
 ];
 
-export default function ModelSelector({ selectedModel, onModelChange }: ModelSelectorProps) {
+/**
+ * ModelSelector component that allows users to select an AI model
+ * @param selectedModel - Currently selected model ID
+ * @param onModelChange - Callback function called when model is changed
+ */
+export function ModelSelector({ selectedModel, onModelChange }: ModelSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedModelData = models.find((m) => m.id === selectedModel) || models[1];
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside the component
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
