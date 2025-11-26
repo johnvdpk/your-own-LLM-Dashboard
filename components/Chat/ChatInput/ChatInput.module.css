@@ -15,20 +15,20 @@
 
 .input {
   width: 100%;
-  padding: 1.25rem 1rem;
+  padding: 1.25rem var(--spacing-md);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  font-size: 1rem;
+  border-radius: var(--radius-xl);
+  font-size: var(--font-lg);
   background-color: var(--input-bg);
   color: var(--foreground);
   font-family: inherit;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .input:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  box-shadow: var(--focus-shadow);
 }
 
 .input:disabled {
@@ -44,19 +44,19 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 0.5rem;
+  padding: 0 var(--spacing-sm);
 }
 
 .leftControls {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
 }
 
 .iconButton {
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   border: none;
   background-color: transparent;
   color: var(--text-secondary);
@@ -64,8 +64,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s, color 0.2s;
-  font-size: 1.1rem;
+  transition: background-color var(--transition-base), color var(--transition-base);
+  font-size: var(--font-xl);
 }
 
 .iconButton:hover:not(:disabled) {
@@ -86,16 +86,15 @@
 
 .rightControls {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   align-items: center;
-  
 }
 
 .sendButton {
   width: 38px;
   height: 38px;
-  margin:  0 1rem;
-  border-radius: 8px;
+  margin: 0 var(--spacing-md);
+  border-radius: var(--radius-lg);
   border: none;
   background-color: var(--accent);
   color: white;
@@ -103,8 +102,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s, transform 0.1s;
-  font-size: 1.1rem;
+  transition: background-color var(--transition-base), transform var(--transition-fast);
+  font-size: var(--font-xl);
 }
 
 .sendButton:hover:not(:disabled) {
@@ -121,4 +120,24 @@
 .sendButton svg {
   width: 18px;
   height: 18px;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .input {
+    padding: var(--spacing-md);
+    font-size: var(--font-md);
+  }
+
+  .sendButton {
+    width: 36px;
+    height: 36px;
+    margin: 0 var(--spacing-sm);
+  }
+
+  .iconButton {
+    width: 28px;
+    height: 28px;
+    font-size: var(--font-lg);
+  }
 }

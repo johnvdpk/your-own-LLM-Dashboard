@@ -1,0 +1,14 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: var(--spacing-md);
+}
+
+.loading {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: var(--font-lg);
+}
+

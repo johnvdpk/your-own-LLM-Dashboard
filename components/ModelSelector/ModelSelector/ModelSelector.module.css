@@ -6,17 +6,17 @@
 }
 
 .selector {
-  padding: 0.5rem 0.75rem;
+  padding: var(--spacing-sm) 0.75rem;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   background-color: var(--input-bg);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.9rem;
+  gap: var(--spacing-sm);
+  font-size: var(--font-base);
   color: var(--foreground);
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
 }
 
 .selector:hover {
@@ -30,7 +30,7 @@
 .arrow {
   color: var(--text-secondary);
   font-size: 0.75rem;
-  transition: transform 0.2s;
+  transition: transform var(--transition-base);
 }
 
 .arrow.open {
@@ -41,16 +41,16 @@
   position: absolute;
   bottom: 100%;
   right: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--spacing-sm);
   background-color: var(--input-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: var(--radius-xl);
   box-shadow: 0 4px 16px var(--shadow-hover);
   z-index: 1000;
   min-width: 280px;
   max-height: 400px;
   overflow-y: auto;
-  animation: slideDown 0.2s ease-out;
+  animation: slideDown var(--transition-base) ease-out;
 }
 
 @keyframes slideDown {
@@ -64,22 +64,9 @@
   }
 }
 
-.dropdown::-webkit-scrollbar {
-  width: 6px;
-}
-
-.dropdown::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.dropdown::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 3px;
-}
-
 .option {
   width: 100%;
-  padding: 1rem;
+  padding: var(--spacing-md);
   text-align: left;
   border: none;
   background-color: transparent;
@@ -88,7 +75,7 @@
   justify-content: space-between;
   align-items: flex-start;
   border-bottom: 1px solid var(--border-color);
-  transition: background-color 0.2s;
+  transition: background-color var(--transition-base);
   position: relative;
 }
 
@@ -104,38 +91,38 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--spacing-xs);
 }
 
 .modelName {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: var(--font-md);
   color: var(--foreground);
 }
 
 .modelDescription {
-  font-size: 0.85rem;
+  font-size: var(--font-sm);
   color: var(--text-secondary);
   line-height: 1.4;
 }
 
 .checkmark {
   color: #007bff;
-  font-size: 1.1rem;
+  font-size: var(--font-xl);
   margin-left: 0.75rem;
   flex-shrink: 0;
 }
 
 .upgradeButton {
-  padding: 0.25rem 0.75rem;
-  border-radius: 6px;
+  padding: var(--spacing-xs) 0.75rem;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-color);
   background-color: transparent;
   color: var(--text-secondary);
-  font-size: 0.8rem;
+  font-size: var(--font-xs);
   cursor: pointer;
-  margin-left: 0.5rem;
-  transition: all 0.2s;
+  margin-left: var(--spacing-sm);
+  transition: all var(--transition-base);
 }
 
 .upgradeButton:hover {
@@ -144,7 +131,7 @@
 }
 
 .moreModels {
-  padding: 0.75rem 1rem;
+  padding: 0.75rem var(--spacing-md);
   text-align: left;
   border: none;
   background-color: transparent;
@@ -153,7 +140,7 @@
   justify-content: space-between;
   align-items: center;
   color: var(--text-secondary);
-  font-size: 0.9rem;
+  font-size: var(--font-base);
   border-top: 1px solid var(--border-color);
 }
 
@@ -164,4 +151,18 @@
 
 .moreModelsArrow {
   font-size: 0.75rem;
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .dropdown {
+    min-width: 100%;
+    right: 0;
+    left: 0;
+  }
+
+  .selector {
+    font-size: var(--font-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
 }

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 import { Message } from '@/types/chat';
 import { Message as MessageComponent } from '@/components/Chat/Message/Message';
@@ -8,7 +10,12 @@ import { ChatInput } from '@/components/Chat/ChatInput/ChatInput';
 
 import styles from './Chat.module.css';
 
-export function Chat() {
+interface ChatProps {
+  userName: string;
+}
+
+export function Chat({ userName }: ChatProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('anthropic/claude-3.5-sonnet');
   const [isLoading, setIsLoading] = useState(false);
@@ -111,11 +118,23 @@ export function Chat() {
     return 'Evening';
   };
 
+  /**
+   * Handle logout action
+   */
+  const handleLogout = async () => {
+    await signOut({ redirect: false });
+    router.push('/login');
+    router.refresh();
+  };
+
   return (
     <div className={styles.chatContainer}>
+      <button className={styles.logoutButton} onClick={handleLogout}>
+        Uitloggen
+      </button>
       <div className={styles.greeting}>
         <span className={styles.greetingIcon}>👋</span>
-        <h1 className={styles.greetingText}>{getGreeting()}, John</h1>
+        <h1 className={styles.greetingText}>{getGreeting()}, {userName}</h1>
       </div>
 
       <div className={styles.messagesContainer}>
