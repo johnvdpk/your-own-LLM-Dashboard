@@ -1,3 +1,7 @@
+/**
+ * Chat-related type definitions
+ */
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant' | 'system';

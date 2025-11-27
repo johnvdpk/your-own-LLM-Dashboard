@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import type { PromptsApiResponse, CreatePromptRequest, CreatePromptResponse, DeletePromptsResponse, ApiErrorResponse } from '@/types/api';
 
 /**
  * GET /api/prompts
  * Get all prompts for the authenticated user
+ * @returns PromptsApiResponse or ApiErrorResponse
  */
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest
+): Promise<NextResponse<PromptsApiResponse | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -26,7 +31,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ prompts });
+    return NextResponse.json<PromptsApiResponse>({ prompts });
   } catch (error) {
     console.error('Error fetching prompts:', error);
     return NextResponse.json(
@@ -39,8 +44,11 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/prompts
  * Create a new prompt for the authenticated user
+ * @returns CreatePromptResponse or ApiErrorResponse
  */
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<CreatePromptResponse | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -51,7 +59,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = await request.json() as CreatePromptRequest;
     const { title, content } = body;
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -76,7 +84,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ prompt }, { status: 201 });
+    return NextResponse.json<CreatePromptResponse>({ prompt }, { status: 201 });
   } catch (error) {
     console.error('Error creating prompt:', error);
     return NextResponse.json(
@@ -89,8 +97,11 @@ export async function POST(request: NextRequest) {
 /**
  * DELETE /api/prompts
  * Delete all prompts for the authenticated user
+ * @returns DeletePromptsResponse or ApiErrorResponse
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest
+): Promise<NextResponse<DeletePromptsResponse | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -108,7 +119,7 @@ export async function DELETE(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json<DeletePromptsResponse>({ 
       success: true, 
       deletedCount: result.count 
     });

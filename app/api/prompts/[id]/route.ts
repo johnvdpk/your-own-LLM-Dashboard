@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import type { ApiErrorResponse, UpdatePromptRequest, CreatePromptResponse } from '@/types/api';
 
 /**
  * DELETE /api/prompts/[id]
  * Delete a single prompt for the authenticated user
+ * @returns Success response or ApiErrorResponse
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse<{ success: boolean } | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -55,11 +58,12 @@ export async function DELETE(
 /**
  * PATCH /api/prompts/[id]
  * Update prompt title or content for the authenticated user
+ * @returns CreatePromptResponse or ApiErrorResponse
  */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse<CreatePromptResponse | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -71,7 +75,7 @@ export async function PATCH(
     }
 
     const { id: promptId } = await params;
-    const body = await request.json();
+    const body = await request.json() as UpdatePromptRequest;
     const { title, content } = body;
 
     // Verify prompt belongs to user
@@ -125,7 +129,7 @@ export async function PATCH(
       data: updateData,
     });
 
-    return NextResponse.json({ prompt: updatedPrompt });
+    return NextResponse.json<CreatePromptResponse>({ prompt: updatedPrompt });
   } catch (error) {
     console.error('Error updating prompt:', error);
     return NextResponse.json(

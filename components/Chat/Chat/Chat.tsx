@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 
-import { Message } from '@/types/chat';
+import type { Message } from '@/types/chat';
+import type { MessageResponse, PromptsApiResponse } from '@/types/api';
 import { Message as MessageComponent } from '@/components/Chat/Message/Message';
 import { ChatInput } from '@/components/Chat/ChatInput/ChatInput';
 
@@ -40,8 +41,9 @@ export function Chat({ userName, chatId, onChatCreated }: ChatProps) {
 
   /**
    * Load messages from database for a specific chat
+   * @param chatIdToLoad - The ID of the chat to load messages for
    */
-  const loadMessages = async (chatIdToLoad: string) => {
+  const loadMessages = async (chatIdToLoad: string): Promise<void> => {
     try {
       setIsLoadingMessages(true);
       const response = await fetch(`/api/chats/${chatIdToLoad}/messages`);
@@ -50,10 +52,10 @@ export function Chat({ userName, chatId, onChatCreated }: ChatProps) {
         throw new Error('Failed to load messages');
       }
 
-      const data = await response.json();
-      const loadedMessages: Message[] = (data.messages || []).map((msg: any) => ({
+      const data = await response.json() as { messages: MessageResponse[] };
+      const loadedMessages: Message[] = (data.messages || []).map((msg) => ({
         id: msg.id,
-        role: msg.role,
+        role: msg.role as Message['role'],
         content: msg.content,
         timestamp: new Date(msg.timestamp),
       }));
@@ -100,11 +102,11 @@ export function Chat({ userName, chatId, onChatCreated }: ChatProps) {
         return content;
       }
 
-      const data = await response.json();
+      const data = await response.json() as PromptsApiResponse;
       const prompts = data.prompts || [];
 
       // Find prompt with matching title (case-insensitive)
-      const prompt = prompts.find((p: { title: string }) => 
+      const prompt = prompts.find((p) => 
         p.title.toLowerCase() === promptTitle.toLowerCase()
       );
 
@@ -163,7 +165,7 @@ export function Chat({ userName, chatId, onChatCreated }: ChatProps) {
           throw new Error('Failed to create chat');
         }
 
-        const data = await response.json();
+        const data = await response.json() as { chat: { id: string } };
         chatIdToUse = data.chat.id;
         
         // Update local state
@@ -210,7 +212,7 @@ export function Chat({ userName, chatId, onChatCreated }: ChatProps) {
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await response.json() as { message: { content: string } };
       
       // Check if response has the expected structure
       if (!data.message || !data.message.content) {

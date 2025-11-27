@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import type { ApiErrorResponse, UpdateChatRequest, CreateChatResponse } from '@/types/api';
 
 /**
  * DELETE /api/chats/[id]
  * Delete a single chat for the authenticated user
+ * @returns Success response or ApiErrorResponse
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse<{ success: boolean } | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -55,11 +58,12 @@ export async function DELETE(
 /**
  * PATCH /api/chats/[id]
  * Update chat title for the authenticated user
+ * @returns CreateChatResponse or ApiErrorResponse
  */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
-) {
+): Promise<NextResponse<CreateChatResponse | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -71,7 +75,7 @@ export async function PATCH(
     }
 
     const { id: chatId } = await params;
-    const body = await request.json();
+    const body = await request.json() as UpdateChatRequest;
     const { title } = body;
 
     if (title !== null && (typeof title !== 'string' || title.trim().length === 0)) {
@@ -102,7 +106,7 @@ export async function PATCH(
       data: { title: title?.trim() || null },
     });
 
-    return NextResponse.json({ chat: updatedChat });
+    return NextResponse.json<CreateChatResponse>({ chat: updatedChat });
   } catch (error) {
     console.error('Error updating chat:', error);
     return NextResponse.json(

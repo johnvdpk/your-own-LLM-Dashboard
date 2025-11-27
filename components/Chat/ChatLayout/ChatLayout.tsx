@@ -3,8 +3,10 @@
 import { useState, useCallback } from 'react';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+
 import { ChatList } from '@/components/Chat/ChatList/ChatList';
 import { Chat } from '@/components/Chat/Chat/Chat';
+
 import styles from './ChatLayout.module.css';
 
 interface ChatLayoutProps {
@@ -24,7 +26,7 @@ export function ChatLayout({ userName }: ChatLayoutProps) {
   /**
    * Handle logout action
    */
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     await signOut({ redirect: false });
     router.push('/login');
     router.refresh();
@@ -34,15 +36,17 @@ export function ChatLayout({ userName }: ChatLayoutProps) {
 
   /**
    * Handle chat selection
+   * @param chatId - The ID of the selected chat, or null to deselect
    */
-  const handleChatSelect = useCallback((chatId: string | null) => {
+  const handleChatSelect = useCallback((chatId: string | null): void => {
     setSelectedChatId(chatId);
   }, []);
 
   /**
    * Handle chat created from Chat component
+   * @param chatId - The ID of the newly created chat
    */
-  const handleChatCreated = useCallback((chatId: string) => {
+  const handleChatCreated = useCallback((chatId: string): void => {
     setSelectedChatId(chatId);
     setChatListKey(prev => prev + 1);
   }, []);
@@ -50,7 +54,7 @@ export function ChatLayout({ userName }: ChatLayoutProps) {
   /**
    * Handle creating a new chat
    */
-  const handleNewChat = useCallback(async () => {
+  const handleNewChat = useCallback(async (): Promise<void> => {
     try {
       const response = await fetch('/api/chats', {
         method: 'POST',
@@ -67,7 +71,7 @@ export function ChatLayout({ userName }: ChatLayoutProps) {
         throw new Error('Failed to create chat');
       }
 
-      const data = await response.json();
+      const data = await response.json() as { chat: { id: string } };
       setSelectedChatId(data.chat.id);
       setChatListKey(prev => prev + 1);
     } catch (error) {

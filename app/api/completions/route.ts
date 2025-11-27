@@ -1,15 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-
-import { openRouter, getOpenRouterHeaders, ChatMessage } from '@/lib/openrouter';
+import { openRouter, getOpenRouterHeaders } from '@/lib/openrouter';
+import type { ChatMessage } from '@/lib/openrouter';
+import type { CompletionRequest, CompletionResponse, ApiErrorResponse } from '@/types/api';
 
 /**
  * POST /api/completions
  * Handles chat message requests and forwards them to OpenRouter API
  * Also saves messages to database if chatId is provided
+ * @returns CompletionResponse or ApiErrorResponse
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<CompletionResponse | ApiErrorResponse>> {
   try {
     // Check if API key is set
     if (!process.env.OPENROUTER_API_KEY) {
@@ -21,7 +26,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     const session = await auth();
-    const body = await request.json();
+    const body = await request.json() as CompletionRequest;
     const { messages, model, chatId } = body;
 
     // Validate request body structure
@@ -150,7 +155,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
     }
 
-    return NextResponse.json({
+    return NextResponse.json<CompletionResponse>({
       message: assistantMessage,
     });
   } catch (error: unknown) {

@@ -1,30 +1,17 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import styles from './ChatList.module.css';
+
+import type { ChatResponse, PromptResponse } from '@/types/api';
 import { NewChatButton } from '@/components/Chat/NewChatButton/NewChatButton';
 import { NewPromptButton } from '@/components/Chat/NewPromptButton/NewPromptButton';
 import { PromptEditor } from '@/components/Chat/PromptEditor/PromptEditor';
 
+import styles from './ChatList.module.css';
 
-interface Chat {
-  id: string;
-  title: string | null;
-  model: string;
-  createdAt: string;
-  updatedAt: string;
-  _count?: {
-    messages: number;
-  };
-}
-
-interface Prompt {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-}
+// Use API types for component state
+type Chat = ChatResponse;
+type Prompt = PromptResponse;
 
 interface ChatListProps {
   selectedChatId: string | null;
@@ -102,7 +89,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   /**
    * Load all chats for the current user
    */
-  const loadChats = async () => {
+  const loadChats = async (): Promise<void> => {
     try {
       setIsLoading(true);
       const response = await fetch('/api/chats');
@@ -111,7 +98,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
         throw new Error('Failed to load chats');
       }
 
-      const data = await response.json();
+      const data = await response.json() as { chats: ChatResponse[] };
       setChats(data.chats || []);
     } catch (error) {
       console.error('Error loading chats:', error);
@@ -123,7 +110,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   /**
    * Load all prompts for the current user
    */
-  const loadPrompts = async () => {
+  const loadPrompts = async (): Promise<void> => {
     try {
       const response = await fetch('/api/prompts');
       
@@ -131,7 +118,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
         throw new Error('Failed to load prompts');
       }
 
-      const data = await response.json();
+      const data = await response.json() as { prompts: PromptResponse[] };
       setPrompts(data.prompts || []);
     } catch (error) {
       console.error('Error loading prompts:', error);
@@ -140,6 +127,8 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Get display title for a chat
+   * @param chat - The chat object
+   * @returns The display title for the chat
    */
   const getChatTitle = (chat: Chat): string => {
     if (chat.title) {
@@ -150,6 +139,8 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Format date for display
+   * @param dateString - ISO date string to format
+   * @returns Formatted date string in Dutch
    */
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
@@ -170,8 +161,9 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Handle deleting a single chat
+   * @param chatId - The ID of the chat to delete
    */
-  const handleDeleteChat = async (chatId: string) => {
+  const handleDeleteChat = async (chatId: string): Promise<void> => {
     try {
       const response = await fetch(`/api/chats/${chatId}`, {
         method: 'DELETE',
@@ -198,7 +190,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   /**
    * Handle deleting all chats
    */
-  const handleDeleteAllChats = async () => {
+  const handleDeleteAllChats = async (): Promise<void> => {
     try {
       const response = await fetch('/api/chats', {
         method: 'DELETE',
@@ -222,8 +214,9 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Start editing chat title
+   * @param chat - The chat to edit
    */
-  const handleStartEdit = (chat: Chat) => {
+  const handleStartEdit = (chat: Chat): void => {
     setEditingChatId(chat.id);
     setEditTitleValue(chat.title || '');
     setMenuOpenChatId(null);
@@ -231,8 +224,9 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Save edited chat title
+   * @param chatId - The ID of the chat to update
    */
-  const handleSaveEdit = async (chatId: string) => {
+  const handleSaveEdit = async (chatId: string): Promise<void> => {
     try {
       const response = await fetch(`/api/chats/${chatId}`, {
         method: 'PATCH',
@@ -261,7 +255,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   /**
    * Cancel editing
    */
-  const handleCancelEdit = () => {
+  const handleCancelEdit = (): void => {
     setEditingChatId(null);
     setEditTitleValue('');
   };
@@ -279,8 +273,10 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Handle saving a new prompt
+   * @param title - The prompt title
+   * @param content - The prompt content
    */
-  const handleSavePrompt = async (title: string, content: string) => {
+  const handleSavePrompt = async (title: string, content: string): Promise<void> => {
     try {
       const response = await fetch('/api/prompts', {
         method: 'POST',
@@ -307,8 +303,9 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Handle deleting a single prompt
+   * @param promptId - The ID of the prompt to delete
    */
-  const handleDeletePrompt = async (promptId: string) => {
+  const handleDeletePrompt = async (promptId: string): Promise<void> => {
     try {
       const response = await fetch(`/api/prompts/${promptId}`, {
         method: 'DELETE',
@@ -330,7 +327,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   /**
    * Handle deleting all prompts
    */
-  const handleDeleteAllPrompts = async () => {
+  const handleDeleteAllPrompts = async (): Promise<void> => {
     try {
       const response = await fetch('/api/prompts', {
         method: 'DELETE',
@@ -352,7 +349,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   /**
    * Handle deleting everything (chats and prompts)
    */
-  const handleDeleteAll = async () => {
+  const handleDeleteAll = async (): Promise<void> => {
     try {
       // Delete all chats
       await fetch('/api/chats', {
@@ -379,8 +376,9 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Start editing prompt
+   * @param prompt - The prompt to edit
    */
-  const handleStartEditPrompt = (prompt: Prompt) => {
+  const handleStartEditPrompt = (prompt: Prompt): void => {
     setEditingPrompt(prompt);
     setShowPromptEditor(true);
     setMenuOpenPromptId(null);
@@ -388,8 +386,10 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Handle updating prompt in editor
+   * @param title - The updated prompt title
+   * @param content - The updated prompt content
    */
-  const handleUpdatePrompt = async (title: string, content: string) => {
+  const handleUpdatePrompt = async (title: string, content: string): Promise<void> => {
     if (!editingPrompt) return;
 
     try {

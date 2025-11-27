@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import type { ChatsApiResponse, CreateChatRequest, CreateChatResponse, DeleteChatsResponse, ApiErrorResponse } from '@/types/api';
 
 /**
  * GET /api/chats
  * Get all chats for the authenticated user
+ * @returns ChatsApiResponse or ApiErrorResponse
  */
-export async function GET(request: NextRequest) {
+export async function GET(
+  request: NextRequest
+): Promise<NextResponse<ChatsApiResponse | ApiErrorResponse>> {
   try {
     const session = await auth(); 
 
@@ -31,7 +36,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ chats });
+    return NextResponse.json<ChatsApiResponse>({ chats });
   } catch (error) {
     console.error('Error fetching chats:', error);
     return NextResponse.json(
@@ -44,8 +49,11 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/chats
  * Create a new chat for the authenticated user
+ * @returns CreateChatResponse or ApiErrorResponse
  */
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<CreateChatResponse | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -56,7 +64,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const body = await request.json();
+    const body = await request.json() as CreateChatRequest;
     const { title, model } = body;
 
     const chat = await prisma.chat.create({
@@ -67,7 +75,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ chat }, { status: 201 });
+    return NextResponse.json<CreateChatResponse>({ chat }, { status: 201 });
   } catch (error) {
     console.error('Error creating chat:', error);
     return NextResponse.json(
@@ -80,8 +88,11 @@ export async function POST(request: NextRequest) {
 /**
  * DELETE /api/chats
  * Delete all chats for the authenticated user
+ * @returns DeleteChatsResponse or ApiErrorResponse
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest
+): Promise<NextResponse<DeleteChatsResponse | ApiErrorResponse>> {
   try {
     const session = await auth();
 
@@ -99,7 +110,7 @@ export async function DELETE(request: NextRequest) {
       },
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json<DeleteChatsResponse>({ 
       success: true, 
       deletedCount: result.count 
     });
