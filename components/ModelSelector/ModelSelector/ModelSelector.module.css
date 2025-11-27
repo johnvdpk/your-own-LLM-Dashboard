@@ -38,10 +38,7 @@
 }
 
 .dropdown {
-  position: absolute;
-  bottom: 100%;
-  right: 0;
-  margin-bottom: var(--spacing-sm);
+  position: fixed;
   background-color: var(--input-bg);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);

@@ -170,7 +170,7 @@ export function Chat({ userName, chatId, onChatCreated }: ChatProps) {
         setCurrentChatId(chatIdToUse);
         
         // Trigger parent to update chatId and reload chat list
-        if (onChatCreated) {
+        if (onChatCreated && chatIdToUse) {
           onChatCreated(chatIdToUse);
         }
       } catch (error) {

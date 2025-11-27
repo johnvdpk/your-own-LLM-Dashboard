@@ -64,14 +64,44 @@ const models: Model[] = [
  */
 export function ModelSelector({ selectedModel, onModelChange }: ModelSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top?: number; bottom?: number; left?: number; right?: number }>({});
+  const containerRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const selectedModelData = models.find((m) => m.id === selectedModel) || models[1];
 
+  // Calculate dropdown position when opened
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const dropdownHeight = 400; // max-height
+      const spaceAbove = containerRect.top;
+      const spaceBelow = window.innerHeight - containerRect.bottom;
+      const viewportWidth = window.innerWidth;
+      
+      // Calculate right position (align with container right edge)
+      const right = viewportWidth - containerRect.right;
+      
+      // Position dropdown above if there's more space above
+      if (spaceAbove >= dropdownHeight || spaceAbove > spaceBelow) {
+        setDropdownPosition({
+          bottom: window.innerHeight - containerRect.top + 8, // margin-bottom
+          right: right,
+        });
+      } else {
+        setDropdownPosition({
+          top: containerRect.bottom + 8, // margin-top
+          right: right,
+        });
+      }
+    }
+  }, [isOpen]);
+
   // Close dropdown when clicking outside the component
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node) &&
+          dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsOpen(false);
       }
     };
@@ -86,7 +116,7 @@ export function ModelSelector({ selectedModel, onModelChange }: ModelSelectorPro
   }, [isOpen]);
 
   return (
-    <div className={styles.container} ref={dropdownRef}>
+    <div className={styles.container} ref={containerRef}>
       <button
         className={styles.selector}
         onClick={() => setIsOpen(!isOpen)}
@@ -97,7 +127,12 @@ export function ModelSelector({ selectedModel, onModelChange }: ModelSelectorPro
         <span className={`${styles.arrow} ${isOpen ? styles.open : ''}`}>▼</span>
       </button>
       {isOpen && (
-        <div className={styles.dropdown}>
+        <>
+          <div 
+            className={styles.dropdown}
+            ref={dropdownRef}
+            style={dropdownPosition}
+          >
           {models.map((model) => (
             <button
               key={model.id}
@@ -149,6 +184,7 @@ export function ModelSelector({ selectedModel, onModelChange }: ModelSelectorPro
             <span className={styles.moreModelsArrow}>›</span>
           </button>
         </div>
+        </>
       )}
     </div>
   );

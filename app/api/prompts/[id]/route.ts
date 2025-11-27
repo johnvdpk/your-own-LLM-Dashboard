@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -20,7 +20,7 @@ export async function DELETE(
       );
     }
 
-    const promptId = params.id;
+    const { id: promptId } = await params;
 
     // Verify prompt belongs to user
     const prompt = await prisma.prompt.findFirst({
@@ -58,7 +58,7 @@ export async function DELETE(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -70,7 +70,7 @@ export async function PATCH(
       );
     }
 
-    const promptId = params.id;
+    const { id: promptId } = await params;
     const body = await request.json();
     const { title, content } = body;
 

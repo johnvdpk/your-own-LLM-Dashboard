@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -20,7 +20,7 @@ export async function DELETE(
       );
     }
 
-    const chatId = params.id;
+    const { id: chatId } = await params;
 
     // Verify chat belongs to user
     const chat = await prisma.chat.findFirst({
@@ -58,7 +58,7 @@ export async function DELETE(
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -70,7 +70,7 @@ export async function PATCH(
       );
     }
 
-    const chatId = params.id;
+    const { id: chatId } = await params;
     const body = await request.json();
     const { title } = body;
 

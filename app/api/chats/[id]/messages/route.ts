@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -20,7 +20,7 @@ export async function GET(
       );
     }
 
-    const chatId = params.id;
+    const { id: chatId } = await params;
 
     // Verify chat belongs to user
     const chat = await prisma.chat.findFirst({
@@ -62,7 +62,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -74,7 +74,7 @@ export async function POST(
       );
     }
 
-    const chatId = params.id;
+    const { id: chatId } = await params;
     const body = await request.json();
     const { role, content } = body;
 

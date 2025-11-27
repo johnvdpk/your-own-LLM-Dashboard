@@ -88,5 +88,10 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.chatArea > *:last-child {
+  overflow: visible;
 }
 
