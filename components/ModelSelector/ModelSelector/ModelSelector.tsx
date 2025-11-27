@@ -91,6 +91,7 @@ export function ModelSelector({ selectedModel, onModelChange }: ModelSelectorPro
         className={styles.selector}
         onClick={() => setIsOpen(!isOpen)}
         type="button"
+        suppressHydrationWarning
       >
         <span className={styles.selectedModel}>{selectedModelData.name}</span>
         <span className={`${styles.arrow} ${isOpen ? styles.open : ''}`}>▼</span>
@@ -115,16 +116,24 @@ export function ModelSelector({ selectedModel, onModelChange }: ModelSelectorPro
                 <span className={styles.checkmark}>✓</span>
               )}
               {model.requiresUpgrade && selectedModel !== model.id && (
-                <button
+                <div
                   className={styles.upgradeButton}
                   onClick={(e) => {
                     e.stopPropagation();
                     // Handle upgrade logic here
                   }}
-                  type="button"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      // Handle upgrade logic here
+                    }
+                  }}
                 >
                   Upgrade
-                </button>
+                </div>
               )}
             </button>
           ))}

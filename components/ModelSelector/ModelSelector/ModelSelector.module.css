@@ -46,7 +46,7 @@
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
   box-shadow: 0 4px 16px var(--shadow-hover);
-  z-index: 1000;
+  z-index: 2000;
   min-width: 280px;
   max-height: 400px;
   overflow-y: auto;

@@ -1,8 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 import { Message } from '@/types/chat';
 import { Message as MessageComponent } from '@/components/Chat/Message/Message';
@@ -12,24 +10,178 @@ import styles from './Chat.module.css';
 
 interface ChatProps {
   userName: string;
+  chatId: string | null;
+  onChatCreated?: (chatId: string) => void;
 }
 
-export function Chat({ userName }: ChatProps) {
-  const router = useRouter();
+export function Chat({ userName, chatId, onChatCreated }: ChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('anthropic/claude-3.5-sonnet');
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState<string>('');
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(chatId);
+
+  // Update currentChatId when prop changes
+  useEffect(() => {
+    setCurrentChatId(chatId);
+  }, [chatId]);
+
+  /**
+   * Load messages for the current chat
+   */
+  useEffect(() => {
+    if (currentChatId) {
+      loadMessages(currentChatId);
+    } else {
+      setMessages([]);
+    }
+  }, [currentChatId]);
+
+  /**
+   * Load messages from database for a specific chat
+   */
+  const loadMessages = async (chatIdToLoad: string) => {
+    try {
+      setIsLoadingMessages(true);
+      const response = await fetch(`/api/chats/${chatIdToLoad}/messages`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to load messages');
+      }
+
+      const data = await response.json();
+      const loadedMessages: Message[] = (data.messages || []).map((msg: any) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        timestamp: new Date(msg.timestamp),
+      }));
+      
+      setMessages(loadedMessages);
+    } catch (error) {
+      console.error('Error loading messages:', error);
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
+  /**
+   * Resolve prompt syntax: "/titel tekst" -> "[prompt content] tekst"
+   * @param content - The message content that may contain prompt syntax
+   * @returns The resolved content with prompt replaced but rest of text preserved
+   */
+  const resolvePromptSyntax = async (content: string): Promise<string> => {
+    // Check if content starts with "/"
+    if (!content.trim().startsWith('/')) {
+      return content;
+    }
+
+    // Extract prompt title and remaining text
+    // Match "/titel" followed by optional space and remaining text
+    const match = content.match(/^\/(\S+)(?:\s+(.*))?$/);
+    if (!match) {
+      return content;
+    }
+
+    const promptTitle = match[1].trim();
+    const remainingText = match[2] || '';
+    
+    if (!promptTitle) {
+      return content;
+    }
+
+    try {
+      // Fetch all prompts for the user
+      const response = await fetch('/api/prompts');
+      
+      if (!response.ok) {
+        console.error('Failed to fetch prompts');
+        return content;
+      }
+
+      const data = await response.json();
+      const prompts = data.prompts || [];
+
+      // Find prompt with matching title (case-insensitive)
+      const prompt = prompts.find((p: { title: string }) => 
+        p.title.toLowerCase() === promptTitle.toLowerCase()
+      );
+
+      if (prompt) {
+        // Replace "/titel" with prompt content, keep remaining text
+        const resolvedContent = remainingText.trim() 
+          ? `${prompt.content} ${remainingText.trim()}`
+          : prompt.content;
+        return resolvedContent;
+      } else {
+        // Prompt not found, show error message
+        const errorMessage: Message = {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `Prompt "${promptTitle}" niet gevonden. Controleer de titel en probeer het opnieuw.`,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        return ''; // Don't send the message
+      }
+    } catch (error) {
+      console.error('Error resolving prompt:', error);
+      return content;
+    }
+  };
 
   /**
    * Sends a message to the chat API and handles the streaming response with typewriter effect
    * @param content - The message content to send
    */
   const sendMessage = async (content: string): Promise<void> => {
+    // Resolve prompt syntax if present
+    const resolvedContent = await resolvePromptSyntax(content);
+    
+    // If resolved content is empty (prompt not found), don't send
+    if (!resolvedContent.trim()) {
+      return;
+    }
+
+    // If no chat exists, create one first
+    let chatIdToUse = currentChatId;
+    if (!chatIdToUse) {
+      try {
+        const response = await fetch('/api/chats', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: null,
+            model: selectedModel,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to create chat');
+        }
+
+        const data = await response.json();
+        chatIdToUse = data.chat.id;
+        
+        // Update local state
+        setCurrentChatId(chatIdToUse);
+        
+        // Trigger parent to update chatId and reload chat list
+        if (onChatCreated) {
+          onChatCreated(chatIdToUse);
+        }
+      } catch (error) {
+        console.error('Error creating chat:', error);
+        return;
+      }
+    }
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content,
+      content: resolvedContent,
       timestamp: new Date(),
     };
 
@@ -38,7 +190,7 @@ export function Chat({ userName }: ChatProps) {
     setStreamingMessage('');
 
     try {
-      const response = await fetch('/api/chat', {
+      const response = await fetch('/api/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,6 +201,7 @@ export function Chat({ userName }: ChatProps) {
             content,
           })),
           model: selectedModel,
+          chatId: chatIdToUse,
         }),
       });
 
@@ -118,29 +271,31 @@ export function Chat({ userName }: ChatProps) {
     return 'Evening';
   };
 
-  /**
-   * Handle logout action
-   */
-  const handleLogout = async () => {
-    await signOut({ redirect: false });
-    router.push('/login');
-    router.refresh();
-  };
-
   return (
     <div className={styles.chatContainer}>
-      <button className={styles.logoutButton} onClick={handleLogout}>
-        Uitloggen
-      </button>
       <div className={styles.greeting}>
         <span className={styles.greetingIcon}>👋</span>
         <h1 className={styles.greetingText}>{getGreeting()}, {userName}</h1>
       </div>
 
       <div className={styles.messagesContainer}>
-        {messages.map((message) => (
-          <MessageComponent key={message.id} message={message} />
-        ))}
+        {isLoadingMessages ? (
+          <div className={styles.loading}>
+            <span className={styles.thinking}>Berichten laden</span>
+          </div>
+        ) : (
+          <>
+            {messages.length === 0 && !isLoading ? (
+              <div className={styles.emptyState}>
+                <p>Start een nieuwe conversatie door een bericht te sturen.</p>
+              </div>
+            ) : (
+              messages.map((message) => (
+                <MessageComponent key={message.id} message={message} />
+              ))
+            )}
+          </>
+        )}
         {streamingMessage && (
           <MessageComponent
             message={{

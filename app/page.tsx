@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
-import { Chat } from '@/components/Chat/Chat/Chat';
+import { ChatLayout } from '@/components/Chat/ChatLayout/ChatLayout';
 
 export default async function Home() {
   const session = await auth();
@@ -12,7 +12,7 @@ export default async function Home() {
 
   return (
     <main>
-      <Chat userName={session.user.name || session.user.email || 'User'} />
+      <ChatLayout userName={session.user.name || session.user.email || 'User'} />
     </main>
   );
 }

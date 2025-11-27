@@ -28,7 +28,7 @@ export async function sendPasswordResetEmail(
     }
 
     const resetUrl = `${getBaseUrl()}/reset-password?token=${resetToken}`;
-    const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@example.com';
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'john@aiadapt.nl';
 
     const result = await resend.emails.send({
       from: fromEmail,

@@ -1,0 +1,123 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+
+/**
+ * GET /api/prompts
+ * Get all prompts for the authenticated user
+ */
+export async function GET(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const prompts = await prisma.prompt.findMany({
+      where: {
+        userId: session.user.id,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    return NextResponse.json({ prompts });
+  } catch (error) {
+    console.error('Error fetching prompts:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch prompts' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/prompts
+ * Create a new prompt for the authenticated user
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { title, content } = body;
+
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Title is required and must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+
+    if (!content || typeof content !== 'string' || content.trim().length === 0) {
+      return NextResponse.json(
+        { error: 'Content is required and must be a non-empty string' },
+        { status: 400 }
+      );
+    }
+
+    const prompt = await prisma.prompt.create({
+      data: {
+        userId: session.user.id,
+        title: title.trim(),
+        content: content.trim(),
+      },
+    });
+
+    return NextResponse.json({ prompt }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating prompt:', error);
+    return NextResponse.json(
+      { error: 'Failed to create prompt' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/prompts
+ * Delete all prompts for the authenticated user
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+
+    if (!session || !session.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    // Delete all prompts for the user
+    const result = await prisma.prompt.deleteMany({
+      where: {
+        userId: session.user.id,
+      },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      deletedCount: result.count 
+    });
+  } catch (error) {
+    console.error('Error deleting all prompts:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete all prompts' },
+      { status: 500 }
+    );
+  }
+}
+

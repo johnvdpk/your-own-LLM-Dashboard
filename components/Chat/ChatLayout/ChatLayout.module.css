@@ -1,0 +1,92 @@
+.chatLayout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  background-color: var(--background);
+}
+
+.sidebar {
+  flex-shrink: 0;
+  background-color: #f5f3f0;
+  border-right: 1px solid var(--border-color);
+  transition: width var(--transition-base);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--spacing-md);
+}
+
+.sidebarOpen {
+  display: flex;
+  justify-content: left;  
+  width: 280px;
+}
+
+.sidebarClosed {
+  width: 64px;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--background);
+}
+
+.header {
+  padding: var(--spacing-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--input-bg);
+}
+
+.menuToggle {
+  width: 48px;
+  height: 48px;
+  padding: var(--spacing-sm);
+  background: transparent;
+  border: none;
+  color: var(--foreground);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-base);
+  margin-bottom: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.menuToggle:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.logoutButton {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: var(--font-sm);
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.logoutButton:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  border-color: var(--accent);
+}
+
+.chatArea {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+

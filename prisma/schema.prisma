@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,17 +8,16 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  passwordHash  String    @map("password_hash")
-  name          String?
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
-  
-  chats         Chat[]
-  prompts       Prompt[]
+  id             String               @id @default(uuid())
+  email          String               @unique
+  passwordHash   String               @map("password_hash")
+  name           String?
+  createdAt      DateTime             @default(now()) @map("created_at")
+  updatedAt      DateTime             @updatedAt @map("updated_at")
+  chats          Chat[]
   passwordResets PasswordResetToken[]
-  
+  prompts        Prompt[]
+
   @@map("users")
 }
 
@@ -32,36 +28,33 @@ model Chat {
   model     String    @default("anthropic/claude-3.5-sonnet")
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
-  
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages  Message[]
-  
+
   @@map("chats")
 }
 
 model Message {
-  id        String    @id @default(uuid())
-  chatId    String    @map("chat_id")
+  id        String   @id @default(uuid())
+  chatId    String   @map("chat_id")
   role      String
   content   String
-  timestamp DateTime  @default(now())
-  createdAt DateTime  @default(now()) @map("created_at")
-  
-  chat      Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
-  
+  timestamp DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
   @@map("messages")
 }
 
 model Prompt {
-  id        String    @id @default(uuid())
-  userId    String    @map("user_id")
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
   title     String
   content   String
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("prompts")
 }
 
@@ -72,8 +65,7 @@ model PasswordResetToken {
   expires   DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
-  
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@map("password_reset_tokens")
 }
