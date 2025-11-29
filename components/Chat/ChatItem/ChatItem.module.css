@@ -6,6 +6,7 @@
 
 .wrapper.active .chatItem {
   background-color: rgba(123, 156, 135, 0.1);
+  
 }
 
 .chatItem {
@@ -55,10 +56,12 @@
 .content {
   display: flex;
   align-items: left;
-  justify-content: center;
-  flex-direction: column;
+  justify-content: left;
+  flex-direction: row;
   flex: 1;
+  gap: var(--spacing-xs);
   min-width: 0;
+  margin: 0 0.2rem;
 }
 
 .title {

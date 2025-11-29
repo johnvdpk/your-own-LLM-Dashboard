@@ -24,6 +24,71 @@ import type { ChatMessage } from '@/lib/openrouter';
 import type { CompletionRequest, CompletionResponse, ApiErrorResponse } from '@/types/api';
 
 /**
+ * Get comments for a chat and format them as context
+ * @param chatId - Chat ID
+ * @returns Formatted comments context string
+ */
+async function getCommentsContext(chatId: string): Promise<string> {
+  try {
+    const comments = await prisma.comment.findMany({
+      where: {
+        message: {
+          chatId,
+        },
+      },
+      include: {
+        message: {
+          select: {
+            role: true,
+            content: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    if (comments.length === 0) {
+      return '';
+    }
+
+    const commentsText = comments.map((comment) => {
+      const messageContent = typeof comment.message.content === 'string'
+        ? comment.message.content
+        : Array.isArray(comment.message.content)
+          ? comment.message.content
+              .filter((item) => item.type === 'text')
+              .map((item) => (item as { type: 'text'; text?: string }).text || '')
+              .join('\n')
+          : String(comment.message.content);
+
+      const selectedText = comment.selectedText;
+      const userComment = comment.userComment;
+      const aiResponse = comment.aiResponse;
+
+      let commentText = `\n--- Notitie/Vraag op tekst: "${selectedText}" ---\n`;
+      commentText += `Gebruiker: ${userComment}\n`;
+      
+      if (aiResponse) {
+        commentText += `AI antwoord: ${aiResponse}\n`;
+      } else {
+        commentText += `(Notitie - geen AI antwoord)\n`;
+      }
+      
+      commentText += `--- Einde notitie/vraag ---\n`;
+
+      return commentText;
+    }).join('\n');
+
+    return `\n\nBELANGRIJK: De gebruiker heeft notities en vragen gemaakt over specifieke delen van eerdere berichten. Neem deze mee in je overweging:\n${commentsText}\n`;
+  } catch (error) {
+    console.error('Error fetching comments context:', error);
+    return '';
+  }
+}
+
+/**
  * Add MCP tools system prompt to messages if available
  * @param messages - Array of chat messages
  * @returns Enhanced messages with MCP system prompt
@@ -282,8 +347,38 @@ export async function POST(
       );
     }
 
+    // Get comments context if chatId is provided
+    let commentsContext = '';
+    if (chatId) {
+      commentsContext = await getCommentsContext(chatId);
+    }
+
     // Enhance messages with MCP tools
-    const enhancedMessages = await enhanceMessagesWithMcp(messages);
+    let enhancedMessages = await enhanceMessagesWithMcp(messages);
+
+    // Add comments context to system message if available
+    if (commentsContext) {
+      const hasSystemMessage = enhancedMessages.some((msg) => msg.role === 'system');
+      
+      if (hasSystemMessage) {
+        const systemIndex = enhancedMessages.findIndex((msg) => msg.role === 'system');
+        const existingContent = enhancedMessages[systemIndex].content;
+        const existingText = typeof existingContent === 'string'
+          ? existingContent
+          : Array.isArray(existingContent) && existingContent[0]?.type === 'text'
+            ? existingContent[0].text || ''
+            : '';
+        enhancedMessages[systemIndex] = {
+          role: 'system',
+          content: existingText + commentsContext,
+        };
+      } else {
+        enhancedMessages.unshift({
+          role: 'system',
+          content: 'Je bent een behulpzame AI assistent.' + commentsContext,
+        });
+      }
+    }
 
     // Transform messages for Gemini models if needed
     const selectedModel = model || 'openai/gpt-4o';

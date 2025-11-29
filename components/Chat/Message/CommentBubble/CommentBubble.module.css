@@ -1,0 +1,57 @@
+.bubble {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--accent);
+  color: var(--background);
+  border: 2px solid var(--background);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  z-index: 10;
+  padding: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  vertical-align: middle;
+}
+
+.bubble:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.bubble.active {
+  background-color: var(--foreground);
+  transform: scale(1.15);
+}
+
+.bubble svg {
+  width: 14px;
+  height: 14px;
+}
+
+.unreadDot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--error, #ef4444);
+  border: 2px solid var(--background);
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+

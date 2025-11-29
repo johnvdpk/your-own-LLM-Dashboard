@@ -152,6 +152,27 @@
   border: none;
 }
 
+.commentable {
+  position: relative;
+}
+
+.commentWrapper {
+  position: relative;
+  display: inline;
+}
+
+.commentHighlight {
+  background-color: rgba(123, 156, 135, 0.2);
+  border-bottom: 2px solid var(--accent);
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+  padding: 2px 0;
+}
+
+.commentHighlight:hover {
+  background-color: rgba(123, 156, 135, 0.3);
+}
+
 /* Responsive design */
 @media (max-width: 640px) {
   .message {

@@ -17,6 +17,7 @@ model User {
   chats          Chat[]
   passwordResets PasswordResetToken[]
   prompts        Prompt[]
+  comments       Comment[]
 
   @@map("users")
 }
@@ -35,13 +36,14 @@ model Chat {
 }
 
 model Message {
-  id        String   @id @default(uuid())
-  chatId    String   @map("chat_id")
+  id        String    @id @default(uuid())
+  chatId    String    @map("chat_id")
   role      String
-  content   Json     // Changed from String to Json to support multimodal content
-  timestamp DateTime @default(now())
-  createdAt DateTime @default(now()) @map("created_at")
-  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  content   Json      // Changed from String to Json to support multimodal content
+  timestamp DateTime  @default(now())
+  createdAt DateTime  @default(now()) @map("created_at")
+  chat      Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  comments  Comment[]
 
   @@map("messages")
 }
@@ -68,4 +70,21 @@ model PasswordResetToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_reset_tokens")
+}
+
+model Comment {
+  id           String    @id @default(uuid())
+  messageId    String    @map("message_id")
+  userId       String    @map("user_id")
+  selectedText String    @map("selected_text")
+  startOffset  Int       @map("start_offset")
+  endOffset    Int       @map("end_offset")
+  userComment  String    @map("user_comment")
+  aiResponse   String?   @map("ai_response")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  message      Message   @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
 }

@@ -68,6 +68,7 @@
 
 .chatList.expanded .chatItems {
   align-items: stretch;
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .promptItems {
@@ -105,6 +106,7 @@
 
 .chatList.expanded .promptItems {
   align-items: stretch;
+  padding: var(--spacing-sm) var(--spacing-md);
 }
 
 .promptButtonWrapper {

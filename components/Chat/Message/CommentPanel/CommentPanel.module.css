@@ -1,0 +1,131 @@
+.panel {
+  position: fixed;
+  top: 50%;
+  right: var(--spacing-md);
+  transform: translateY(-50%);
+  background: var(--background);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: var(--spacing-md);
+  width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+  animation: slideInRight 0.2s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateY(-50%) translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+  }
+}
+
+.selectedText {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm);
+  background-color: var(--input-bg);
+  border-radius: var(--radius-sm);
+}
+
+.label {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.text {
+  font-size: var(--font-sm);
+  color: var(--foreground);
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-sm);
+  font-family: inherit;
+  color: var(--foreground);
+  background-color: var(--input-bg);
+  resize: vertical;
+  min-height: 60px;
+  margin-bottom: var(--spacing-md);
+  outline: none;
+  transition: border-color var(--transition-base);
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+}
+
+.cancelButton,
+.noteButton,
+.questionButton {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  border: none;
+}
+
+.cancelButton {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.cancelButton:hover:not(:disabled) {
+  background-color: var(--input-bg);
+  color: var(--foreground);
+}
+
+.noteButton {
+  background-color: var(--input-bg);
+  color: var(--foreground);
+  border: 1px solid var(--border-color);
+}
+
+.noteButton:hover:not(:disabled) {
+  background-color: var(--border-color);
+}
+
+.questionButton {
+  background-color: var(--accent);
+  color: var(--background);
+}
+
+.questionButton:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.noteButton:disabled,
+.questionButton:disabled,
+.cancelButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
