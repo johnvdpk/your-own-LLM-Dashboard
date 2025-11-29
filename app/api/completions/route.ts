@@ -5,6 +5,11 @@ import { prisma } from '@/lib/prisma';
 import { openRouter, getOpenRouterHeaders } from '@/lib/openrouter';
 import type { ChatMessage } from '@/lib/openrouter';
 import type { CompletionRequest, CompletionResponse, ApiErrorResponse } from '@/types/api';
+import {
+  generateMcpToolsSystemPrompt,
+  parseToolCalls,
+  executeToolCalls,
+} from '@/lib/mcp-helpers';
 
 /**
  * POST /api/completions
@@ -53,12 +58,44 @@ export async function POST(
       }
     }
 
-    console.log('Sending request to OpenRouter:', { model: model || 'openai/gpt-4o', messageCount: messages.length });
+    // Add MCP tools system prompt if available
+    let mcpSystemPrompt = '';
+    try {
+      mcpSystemPrompt = await generateMcpToolsSystemPrompt();
+    } catch (error) {
+      console.error('Error generating MCP system prompt:', error);
+      // Continue without MCP tools if there's an error
+    }
+    
+    const enhancedMessages: ChatMessage[] = [...messages];
+
+    // Add system prompt with MCP tools if available
+    if (mcpSystemPrompt) {
+      // Check if there's already a system message
+      const hasSystemMessage = enhancedMessages.some((msg) => msg.role === 'system');
+      
+      if (hasSystemMessage) {
+        // Append to existing system message
+        const systemIndex = enhancedMessages.findIndex((msg) => msg.role === 'system');
+        enhancedMessages[systemIndex] = {
+          role: 'system',
+          content: enhancedMessages[systemIndex].content + mcpSystemPrompt,
+        };
+      } else {
+        // Add new system message at the beginning
+        enhancedMessages.unshift({
+          role: 'system',
+          content: 'Je bent een behulpzame AI assistent.' + mcpSystemPrompt,
+        });
+      }
+    }
+
+    console.log('Sending request to OpenRouter:', { model: model || 'openai/gpt-4o', messageCount: enhancedMessages.length });
 
     const completion = await openRouter.chat.send(
       {
         model: model || 'openai/gpt-4o',
-        messages: messages as ChatMessage[],
+        messages: enhancedMessages,
         stream: false,
       },
       {
@@ -77,7 +114,7 @@ export async function POST(
       );
     }
 
-    const assistantMessage = completion.choices[0].message;
+    let assistantMessage = completion.choices[0].message;
 
     // Helper function to convert message content to string
     const getContentAsString = (content: unknown): string => {
@@ -101,7 +138,66 @@ export async function POST(
       return '';
     };
 
-    const assistantContent = getContentAsString(assistantMessage.content);
+    let assistantContent = getContentAsString(assistantMessage.content);
+
+    // Check for tool calls in the response
+    const toolCalls = parseToolCalls(assistantContent);
+    
+    if (toolCalls.length > 0) {
+      console.log('Found tool calls:', toolCalls);
+      
+      // Execute tool calls
+      const toolResults = await executeToolCalls(toolCalls);
+      
+      // Build tool results message
+      const toolResultsText = toolResults
+        .map((result, index) => {
+          const toolCall = toolCalls[index];
+          if (result.success) {
+            return `Tool ${toolCall.serverName}.${toolCall.toolName} uitgevoerd: ${result.result}`;
+          } else {
+            return `Tool ${toolCall.serverName}.${toolCall.toolName} gefaald: ${result.error || 'Unknown error'}`;
+          }
+        })
+        .join('\n');
+
+      // Remove tool calls from assistant content
+      assistantContent = assistantContent.replace(/TOOL_CALL:.*?(\n|$)/g, '').trim();
+
+      // Send tool results back to LLM for final response
+      const toolResultsMessage: ChatMessage = {
+        role: 'user',
+        content: `Tool resultaten:\n${toolResultsText}\n\nGeef een samenvatting van wat er is uitgevoerd.`,
+      };
+
+      const finalMessages: ChatMessage[] = [
+        ...enhancedMessages,
+        {
+          role: 'assistant',
+          content: assistantContent,
+        },
+        toolResultsMessage,
+      ];
+
+      console.log('Sending tool results back to LLM for final response');
+
+      const finalCompletion = await openRouter.chat.send(
+        {
+          model: model || 'openai/gpt-4o',
+          messages: finalMessages,
+          stream: false,
+        },
+        {
+          headers: getOpenRouterHeaders(),
+        }
+      );
+
+      if (finalCompletion?.choices?.[0]?.message) {
+        assistantContent = getContentAsString(finalCompletion.choices[0].message.content);
+        // Update assistantMessage for response
+        assistantMessage = finalCompletion.choices[0].message;
+      }
+    }
 
     // Save messages to database if chatId is provided and user is authenticated
     if (chatId && session?.user?.id) {

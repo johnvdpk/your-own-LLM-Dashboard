@@ -111,3 +111,49 @@ export interface ApiErrorResponse {
   details?: string;
 }
 
+// MCP API Types
+export interface McpServerConfig {
+  name: string;
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+}
+
+export interface McpTool {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: string;
+    properties?: Record<string, unknown>;
+    required?: string[];
+  };
+}
+
+export interface McpToolCallRequest {
+  serverName: string;
+  toolName: string;
+  arguments: Record<string, unknown>;
+}
+
+export interface McpToolCallResponse {
+  success: boolean;
+  content: Array<{
+    type: string;
+    text?: string;
+    [key: string]: unknown;
+  }>;
+  error?: string;
+}
+
+export interface McpServersResponse {
+  servers: Array<{
+    name: string;
+    tools: McpTool[];
+  }>;
+}
+
+export interface McpToolsResponse {
+  serverName: string;
+  tools: McpTool[];
+}
+
