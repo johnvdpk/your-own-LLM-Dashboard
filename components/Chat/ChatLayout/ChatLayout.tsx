@@ -1,12 +1,15 @@
 'use client';
 
+// React/Next.js imports
 import { useState, useCallback } from 'react';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
+// Component imports
 import { ChatList } from '@/components/Chat/ChatList/ChatList';
 import { Chat } from '@/components/Chat/Chat/Chat';
 
+// CSS modules
 import styles from './ChatLayout.module.css';
 
 interface ChatLayoutProps {
@@ -50,6 +53,17 @@ export function ChatLayout({ userName }: ChatLayoutProps) {
     setSelectedChatId(chatId);
     setChatListKey(prev => prev + 1);
   }, []);
+
+  /**
+   * Get greeting based on time of day
+   * @returns Greeting string ('Morning', 'Afternoon', or 'Evening')
+   */
+  const getGreeting = (): 'Morning' | 'Afternoon' | 'Evening' => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Morning';
+    if (hour < 18) return 'Afternoon';
+    return 'Evening';
+  };
 
   /**
    * Handle creating a new chat
@@ -117,12 +131,13 @@ export function ChatLayout({ userName }: ChatLayoutProps) {
               onClick={() => setIsSidebarOpen(!isSidebarOpen)}
               aria-label="Toggle menu"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
-                <rect x="3" y="4" width="3" height="16" rx="1"></rect>
-                <rect x="6" y="4" width="13" height="16" rx="1"></rect>
-              </svg>
+              
             </button>
           )}
+          <div className={styles.greeting}>
+            <span className={styles.greetingIcon}>👋</span>
+            <span className={styles.greetingText}>{getGreeting()}, {userName}</span>
+          </div>
           <button className={styles.logoutButton} onClick={handleLogout}>
             Uitloggen
           </button>

@@ -1,7 +1,10 @@
 'use client';
 
+// React/Next.js imports
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+
+// CSS modules
 import styles from './ForgotPasswordForm.module.css';
 
 interface ForgotPasswordFormProps {

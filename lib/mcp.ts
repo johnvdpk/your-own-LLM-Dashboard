@@ -44,10 +44,18 @@ export async function getMcpClient(config: McpServerConfig): Promise<Client> {
   }
 
   // Create new connection
+  // Convert process.env to Record<string, string> by filtering out undefined values
+  const processEnv: Record<string, string> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (value !== undefined) {
+      processEnv[key] = value;
+    }
+  }
+
   const transport = new StdioClientTransport({
     command: config.command,
     args: config.args || [],
-    env: config.env ? { ...process.env, ...config.env } : process.env,
+    env: config.env ? { ...processEnv, ...config.env } : processEnv,
   });
 
   const client = new Client(
@@ -56,9 +64,7 @@ export async function getMcpClient(config: McpServerConfig): Promise<Client> {
       version: '1.0.0',
     },
     {
-      capabilities: {
-        tools: {},
-      },
+      capabilities: {},
     }
   );
 

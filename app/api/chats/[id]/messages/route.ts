@@ -79,7 +79,15 @@ export async function POST(
     }
 
     const { id: chatId } = await params;
-    const body = await request.json() as { role: string; content: string };
+    const body = await request.json() as { 
+      role: string; 
+      content: string | Array<{
+        type: 'text' | 'image_url' | 'file';
+        text?: string;
+        image_url?: { url: string };
+        file?: { url: string; filename?: string };
+      }>;
+    };
     const { role, content } = body;
 
     if (!role || !['user', 'assistant', 'system'].includes(role)) {
@@ -89,9 +97,10 @@ export async function POST(
       );
     }
 
-    if (!content || typeof content !== 'string') {
+    // Content can be string or array (multimodal)
+    if (!content || (typeof content !== 'string' && !Array.isArray(content))) {
       return NextResponse.json(
-        { error: 'Content is required and must be a string' },
+        { error: 'Content is required and must be a string or array' },
         { status: 400 }
       );
     }
@@ -122,12 +131,20 @@ export async function POST(
 
     // Update chat title if it's the first user message and chat has no title
     if (role === 'user' && !chat.title) {
-      // Use first 50 characters of message as title
-      const title = content.length > 50 ? content.substring(0, 50) + '...' : content;
-      await prisma.chat.update({
-        where: { id: chatId },
-        data: { title },
-      });
+      // Extract text from content for title
+      const titleText = typeof content === 'string'
+        ? content
+        : Array.isArray(content)
+          ? content.find((item) => item.type === 'text')?.text || ''
+          : '';
+      
+      const title = titleText.length > 50 ? titleText.substring(0, 50) + '...' : titleText;
+      if (title) {
+        await prisma.chat.update({
+          where: { id: chatId },
+          data: { title },
+        });
+      }
     }
 
     return NextResponse.json<{ message: MessageResponse }>({ message }, { status: 201 });

@@ -1,5 +1,6 @@
 'use client';
 
+// CSS modules
 import styles from './NewChatButton.module.css';
 
 interface NewChatButtonProps {

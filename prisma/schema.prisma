@@ -38,7 +38,7 @@ model Message {
   id        String   @id @default(uuid())
   chatId    String   @map("chat_id")
   role      String
-  content   String
+  content   Json     // Changed from String to Json to support multimodal content
   timestamp DateTime @default(now())
   createdAt DateTime @default(now()) @map("created_at")
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)

@@ -1,5 +1,6 @@
 'use client';
 
+// CSS modules
 import styles from './NewPromptButton.module.css';
 
 interface NewPromptButtonProps {

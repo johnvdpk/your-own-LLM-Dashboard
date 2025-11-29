@@ -43,7 +43,12 @@ export interface MessageResponse {
   id: string;
   chatId: string;
   role: string;
-  content: string;
+  content: string | Array<{
+    type: 'text' | 'image_url' | 'file';
+    text?: string;
+    image_url?: { url: string };
+    file?: { url: string; filename?: string };
+  }>;
   timestamp: string;
   createdAt: string;
 }
@@ -86,10 +91,19 @@ export interface DeletePromptsResponse {
 }
 
 // Completion API Types
+export type CompletionMessageContent = 
+  | string 
+  | Array<{
+      type: 'text' | 'image_url' | 'file';
+      text?: string;
+      image_url?: { url: string };
+      file?: { url: string; filename?: string };
+    }>;
+
 export interface CompletionRequest {
   messages: Array<{
     role: 'user' | 'assistant' | 'system';
-    content: string;
+    content: CompletionMessageContent;
   }>;
   model: string;
   chatId?: string;
@@ -155,5 +169,32 @@ export interface McpServersResponse {
 export interface McpToolsResponse {
   serverName: string;
   tools: McpTool[];
+}
+
+// File Upload API Types
+export interface UploadResponse {
+  url: string;
+  filename: string;
+}
+
+export interface CleanupResponse {
+  success: boolean;
+  deletedCount: number;
+  stats: {
+    totalFiles: number;
+    totalSize: number;
+    oldestFile: string | null;
+    newestFile: string | null;
+  };
+}
+
+export interface StorageStatsResponse {
+  stats: {
+    totalFiles: number;
+    totalSize: number;
+    oldestFile: string | null;
+    newestFile: string | null;
+  };
+  retentionHours: number;
 }
 

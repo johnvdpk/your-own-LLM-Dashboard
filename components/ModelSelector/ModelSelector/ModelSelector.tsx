@@ -1,7 +1,9 @@
 'use client';
 
+// React/Next.js imports
 import { useState, useEffect, useRef } from 'react';
 
+// CSS modules
 import styles from './ModelSelector.module.css';
 
 interface ModelSelectorProps {

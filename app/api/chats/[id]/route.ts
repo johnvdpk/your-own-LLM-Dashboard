@@ -1,7 +1,11 @@
+// Next.js imports
 import { NextRequest, NextResponse } from 'next/server';
 
+// Internal imports
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+
+// Type imports
 import type { ApiErrorResponse, UpdateChatRequest, CreateChatResponse } from '@/types/api';
 
 /**
@@ -34,9 +38,9 @@ export async function DELETE(
     });
 
     if (!chat) {
-      return NextResponse.json(
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Chat not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -48,9 +52,9 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting chat:', error);
-    return NextResponse.json(
+    return NextResponse.json<ApiErrorResponse>(
       { error: 'Failed to delete chat' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -79,9 +83,9 @@ export async function PATCH(
     const { title } = body;
 
     if (title !== null && (typeof title !== 'string' || title.trim().length === 0)) {
-      return NextResponse.json(
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Title must be a non-empty string or null' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -94,9 +98,9 @@ export async function PATCH(
     });
 
     if (!chat) {
-      return NextResponse.json(
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Chat not found' },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -109,9 +113,9 @@ export async function PATCH(
     return NextResponse.json<CreateChatResponse>({ chat: updatedChat });
   } catch (error) {
     console.error('Error updating chat:', error);
-    return NextResponse.json(
+    return NextResponse.json<ApiErrorResponse>(
       { error: 'Failed to update chat' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

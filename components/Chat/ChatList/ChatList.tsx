@@ -1,17 +1,22 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+// React/Next.js imports
+import { useEffect, useState } from 'react';
 
+// Type imports
 import type { ChatResponse, PromptResponse } from '@/types/api';
+
+// Component imports
 import { NewChatButton } from '@/components/Chat/NewChatButton/NewChatButton';
 import { NewPromptButton } from '@/components/Chat/NewPromptButton/NewPromptButton';
 import { PromptEditor } from '@/components/Chat/PromptEditor/PromptEditor';
+import { ChatItem } from '@/components/Chat/ChatItem/ChatItem';
+import { PromptItem } from '@/components/Chat/PromptItem/PromptItem';
+import { DeleteButton } from '@/components/Chat/DeleteButton/DeleteButton';
+import { ConfirmDialog } from '@/components/Chat/ConfirmDialog/ConfirmDialog';
 
+// CSS modules
 import styles from './ChatList.module.css';
-
-// Use API types for component state
-type Chat = ChatResponse;
-type Prompt = PromptResponse;
 
 interface ChatListProps {
   selectedChatId: string | null;
@@ -28,24 +33,14 @@ interface ChatListProps {
  * @param isExpanded - Whether the sidebar is expanded to show titles
  */
 export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded = false }: ChatListProps) {
-  const [chats, setChats] = useState<Chat[]>([]);
-  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [chats, setChats] = useState<ChatResponse[]>([]);
+  const [prompts, setPrompts] = useState<PromptResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [hoveredChatId, setHoveredChatId] = useState<string | null>(null);
-  const [menuOpenChatId, setMenuOpenChatId] = useState<string | null>(null);
-  const [editingChatId, setEditingChatId] = useState<string | null>(null);
-  const [editTitleValue, setEditTitleValue] = useState<string>('');
-  const [hoveredPromptId, setHoveredPromptId] = useState<string | null>(null);
-  const [menuOpenPromptId, setMenuOpenPromptId] = useState<string | null>(null);
-  const [editingPromptId, setEditingPromptId] = useState<string | null>(null);
-  const [editingPrompt, setEditingPrompt] = useState<Prompt | null>(null);
+  const [editingPrompt, setEditingPrompt] = useState<PromptResponse | null>(null);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [showDeleteAllPromptsConfirm, setShowDeleteAllPromptsConfirm] = useState(false);
   const [showDeleteAllEverythingConfirm, setShowDeleteAllEverythingConfirm] = useState(false);
   const [showPromptEditor, setShowPromptEditor] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const promptMenuRef = useRef<HTMLDivElement>(null);
-  const editInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadChats();
@@ -59,35 +54,9 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
     }
   }, [selectedChatId]);
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpenChatId(null);
-      }
-      if (promptMenuRef.current && !promptMenuRef.current.contains(event.target as Node)) {
-        setMenuOpenPromptId(null);
-      }
-    };
-
-    if (menuOpenChatId || menuOpenPromptId) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [menuOpenChatId, menuOpenPromptId]);
-
-  // Focus input when editing starts
-  useEffect(() => {
-    if (editingChatId && editInputRef.current) {
-      editInputRef.current.focus();
-      editInputRef.current.select();
-    }
-  }, [editingChatId]);
-
   /**
    * Load all chats for the current user
+   * @returns Promise that resolves when chats are loaded
    */
   const loadChats = async (): Promise<void> => {
     try {
@@ -99,7 +68,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
       }
 
       const data = await response.json() as { chats: ChatResponse[] };
-      setChats(data.chats || []);
+      setChats(data.chats ?? []);
     } catch (error) {
       console.error('Error loading chats:', error);
     } finally {
@@ -109,6 +78,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Load all prompts for the current user
+   * @returns Promise that resolves when prompts are loaded
    */
   const loadPrompts = async (): Promise<void> => {
     try {
@@ -119,49 +89,16 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
       }
 
       const data = await response.json() as { prompts: PromptResponse[] };
-      setPrompts(data.prompts || []);
+      setPrompts(data.prompts ?? []);
     } catch (error) {
       console.error('Error loading prompts:', error);
     }
   };
 
   /**
-   * Get display title for a chat
-   * @param chat - The chat object
-   * @returns The display title for the chat
-   */
-  const getChatTitle = (chat: Chat): string => {
-    if (chat.title) {
-      return chat.title;
-    }
-    return 'Nieuwe chat';
-  };
-
-  /**
-   * Format date for display
-   * @param dateString - ISO date string to format
-   * @returns Formatted date string in Dutch
-   */
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days === 0) {
-      return 'Vandaag';
-    } else if (days === 1) {
-      return 'Gisteren';
-    } else if (days < 7) {
-      return `${days} dagen geleden`;
-    } else {
-      return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' });
-    }
-  };
-
-  /**
    * Handle deleting a single chat
    * @param chatId - The ID of the chat to delete
+   * @returns Promise that resolves when chat is deleted
    */
   const handleDeleteChat = async (chatId: string): Promise<void> => {
     try {
@@ -180,8 +117,6 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
       if (selectedChatId === chatId) {
         onChatSelect(null);
       }
-
-      setMenuOpenChatId(null);
     } catch (error) {
       console.error('Error deleting chat:', error);
     }
@@ -189,6 +124,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Handle deleting all chats
+   * @returns Promise that resolves when all chats are deleted
    */
   const handleDeleteAllChats = async (): Promise<void> => {
     try {
@@ -213,20 +149,12 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   };
 
   /**
-   * Start editing chat title
-   * @param chat - The chat to edit
-   */
-  const handleStartEdit = (chat: Chat): void => {
-    setEditingChatId(chat.id);
-    setEditTitleValue(chat.title || '');
-    setMenuOpenChatId(null);
-  };
-
-  /**
    * Save edited chat title
    * @param chatId - The ID of the chat to update
+   * @param title - The new title
+   * @returns Promise that resolves when title is saved
    */
-  const handleSaveEdit = async (chatId: string): Promise<void> => {
+  const handleSaveEdit = async (chatId: string, title: string): Promise<void> => {
     try {
       const response = await fetch(`/api/chats/${chatId}`, {
         method: 'PATCH',
@@ -234,8 +162,8 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: editTitleValue.trim() || null,
-        }),
+          title: title.trim() || null,
+        },),
       });
 
       if (!response.ok) {
@@ -244,30 +172,8 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
       // Reload chats
       await loadChats();
-
-      setEditingChatId(null);
-      setEditTitleValue('');
     } catch (error) {
       console.error('Error updating chat title:', error);
-    }
-  };
-
-  /**
-   * Cancel editing
-   */
-  const handleCancelEdit = (): void => {
-    setEditingChatId(null);
-    setEditTitleValue('');
-  };
-
-  /**
-   * Handle key press in edit input
-   */
-  const handleEditKeyPress = (e: React.KeyboardEvent<HTMLInputElement>, chatId: string) => {
-    if (e.key === 'Enter') {
-      handleSaveEdit(chatId);
-    } else if (e.key === 'Escape') {
-      handleCancelEdit();
     }
   };
 
@@ -275,6 +181,8 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
    * Handle saving a new prompt
    * @param title - The prompt title
    * @param content - The prompt content
+   * @returns Promise that resolves when prompt is saved
+   * @throws Error if prompt creation fails
    */
   const handleSavePrompt = async (title: string, content: string): Promise<void> => {
     try {
@@ -304,6 +212,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   /**
    * Handle deleting a single prompt
    * @param promptId - The ID of the prompt to delete
+   * @returns Promise that resolves when prompt is deleted
    */
   const handleDeletePrompt = async (promptId: string): Promise<void> => {
     try {
@@ -317,8 +226,6 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
       // Reload prompts
       await loadPrompts();
-
-      setMenuOpenPromptId(null);
     } catch (error) {
       console.error('Error deleting prompt:', error);
     }
@@ -326,6 +233,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Handle deleting all prompts
+   * @returns Promise that resolves when all prompts are deleted
    */
   const handleDeleteAllPrompts = async (): Promise<void> => {
     try {
@@ -348,6 +256,7 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   /**
    * Handle deleting everything (chats and prompts)
+   * @returns Promise that resolves when everything is deleted
    */
   const handleDeleteAll = async (): Promise<void> => {
     try {
@@ -377,17 +286,19 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
   /**
    * Start editing prompt
    * @param prompt - The prompt to edit
+   * @returns void
    */
-  const handleStartEditPrompt = (prompt: Prompt): void => {
+  const handleStartEditPrompt = (prompt: PromptResponse): void => {
     setEditingPrompt(prompt);
     setShowPromptEditor(true);
-    setMenuOpenPromptId(null);
   };
 
   /**
    * Handle updating prompt in editor
    * @param title - The updated prompt title
    * @param content - The updated prompt content
+   * @returns Promise that resolves when prompt is updated
+   * @throws Error if prompt update fails
    */
   const handleUpdatePrompt = async (title: string, content: string): Promise<void> => {
     if (!editingPrompt) return;
@@ -428,7 +339,19 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
 
   return (
     <div className={`${styles.chatList} ${isExpanded ? styles.expanded : styles.collapsed}`}>
-      {isExpanded && <h2 className={styles.title}>Chats</h2>}
+      {isExpanded && (
+        <div className={styles.titleContainer}>
+          <h2 className={styles.title}>Chats</h2>
+          {chats.length > 0 && (
+            <DeleteButton
+              onClick={() => setShowDeleteAllConfirm(true)}
+              ariaLabel="Verwijder alle chats"
+              title="Verwijder alle chats"
+              size={16}
+            />
+          )}
+        </div>
+      )}
       {onNewChat && (
         <div className={styles.newChatButtonWrapper}>
           <NewChatButton onClick={onNewChat} />
@@ -439,275 +362,77 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
           <div className={styles.empty}>{isExpanded ? 'Geen chats gevonden' : 'Geen chats'}</div>
         ) : (
           chats.map((chat) => (
-            <div
+            <ChatItem
               key={chat.id}
-              className={`${styles.chatItemWrapper} ${selectedChatId === chat.id ? styles.active : ''}`}
-              onMouseEnter={() => isExpanded && setHoveredChatId(chat.id)}
-              onMouseLeave={() => setHoveredChatId(null)}
-            >
-              <button
-                className={`${styles.chatItem} ${selectedChatId === chat.id ? styles.active : ''}`}
-                onClick={() => onChatSelect(chat.id)}
-                title={isExpanded ? undefined : getChatTitle(chat)}
-                aria-label={getChatTitle(chat)}
-              >
-                <svg 
-                  className={styles.chatIcon} 
-                  viewBox="0 0 18 18" 
-                  width="18" 
-                  height="18"
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="1"
-                >
-                  <path d="M15.75 11.25a1.5 1.5 0 0 1-1.5 1.5H5.25l-3 3V3.75a1.5 1.5 0 0 1 1.5-1.5h10.5a1.5 1.5 0 0 1 1.5 1.5z"></path>
-                </svg>
-                {isExpanded && (
-                  <div className={styles.chatItemContent}>
-                    {editingChatId === chat.id ? (
-                      <input
-                        ref={editInputRef}
-                        type="text"
-                        className={styles.editInput}
-                        value={editTitleValue}
-                        onChange={(e) => setEditTitleValue(e.target.value)}
-                        onBlur={() => handleSaveEdit(chat.id)}
-                        onKeyDown={(e) => handleEditKeyPress(e, chat.id)}
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                    ) : (
-                      <div className={styles.chatItemTitle}>{getChatTitle(chat)}</div>
-                    )}
-                    <div className={styles.chatItemMeta}>{formatDate(chat.updatedAt)}</div>
-                  </div>
-                )}
-              </button>
-              {isExpanded && hoveredChatId === chat.id && editingChatId !== chat.id && (
-                <div className={styles.chatItemActions} ref={menuRef}>
-                  <button
-                    className={styles.menuButton}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuOpenChatId(menuOpenChatId === chat.id ? null : chat.id);
-                    }}
-                    aria-label="Chat opties"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="16"
-                      height="16"
-                      fill="currentColor"
-                    >
-                      <circle cx="12" cy="5" r="1.5" />
-                      <circle cx="12" cy="12" r="1.5" />
-                      <circle cx="12" cy="19" r="1.5" />
-                    </svg>
-                  </button>
-                  {menuOpenChatId === chat.id && (
-                    <div className={styles.menuDropdown}>
-                      <button
-                        className={styles.menuItem}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStartEdit(chat);
-                        }}
-                      >
-                        Naam veranderen
-                      </button>
-                      <button
-                        className={styles.menuItem}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteChat(chat.id);
-                        }}
-                      >
-                        Verwijderen
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+              chat={chat}
+              isSelected={selectedChatId === chat.id}
+              isExpanded={isExpanded}
+              onSelect={onChatSelect}
+              onDelete={handleDeleteChat}
+              onSaveEdit={handleSaveEdit}
+            />
           ))
         )}
       </div>
       <div className={styles.promptButtonWrapper}>
         <NewPromptButton onClick={() => setShowPromptEditor(true)} />
       </div>
-      {isExpanded && <h2 className={styles.title}>Prompts</h2>}
+      {isExpanded && (
+        <div className={styles.titleContainer}>
+          <h2 className={styles.title}>Prompts</h2>
+          {prompts.length > 0 && (
+            <DeleteButton
+              onClick={() => setShowDeleteAllPromptsConfirm(true)}
+              ariaLabel="Verwijder alle prompts"
+              title="Verwijder alle prompts"
+              size={16}
+            />
+          )}
+        </div>
+      )}
       <div className={styles.promptItems}>
         {prompts.length === 0 ? (
           <div className={styles.empty}>{isExpanded ? 'Geen prompts gevonden' : ''}</div>
         ) : (
           prompts.map((prompt) => (
-            <div
+            <PromptItem
               key={prompt.id}
-              className={styles.promptItemWrapper}
-              onMouseEnter={() => isExpanded && setHoveredPromptId(prompt.id)}
-              onMouseLeave={() => setHoveredPromptId(null)}
-            >
-              <div className={styles.promptItem}>
-                <svg 
-                  className={styles.promptIcon} 
-                  viewBox="0 0 18 18" 
-                  width="18" 
-                  height="18"
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="1"
-                >
-                  <path d="M14 2H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2z"></path>
-                  <path d="M6 6h6M6 10h6M6 14h4"></path>
-                </svg>
-                {isExpanded && (
-                  <div className={styles.promptItemContent}>
-                    <div className={styles.promptItemTitle}>{prompt.title}</div>
-                  </div>
-                )}
-              </div>
-              {isExpanded && hoveredPromptId === prompt.id && (
-                <div className={styles.promptItemActions} ref={promptMenuRef}>
-                  <button
-                    className={styles.menuButton}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setMenuOpenPromptId(menuOpenPromptId === prompt.id ? null : prompt.id);
-                    }}
-                    aria-label="Prompt opties"
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      width="16"
-                      height="16"
-                      fill="currentColor"
-                    >
-                      <circle cx="12" cy="5" r="1.5" />
-                      <circle cx="12" cy="12" r="1.5" />
-                      <circle cx="12" cy="19" r="1.5" />
-                    </svg>
-                  </button>
-                  {menuOpenPromptId === prompt.id && (
-                    <div className={styles.menuDropdown}>
-                      <button
-                        className={styles.menuItem}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleStartEditPrompt(prompt);
-                        }}
-                      >
-                        Bewerken
-                      </button>
-                      <button
-                        className={styles.menuItem}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeletePrompt(prompt.id);
-                        }}
-                      >
-                        Verwijderen
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+              prompt={prompt}
+              isExpanded={isExpanded}
+              onEdit={handleStartEditPrompt}
+              onDelete={handleDeletePrompt}
+            />
           ))
         )}
       </div>
       {isExpanded && (prompts.length > 0 || chats.length > 0) && (
         <div className={styles.deleteAllWrapper}>
-          {prompts.length > 0 && (
-            <button
-              className={styles.deleteAllButton}
-              onClick={() => setShowDeleteAllPromptsConfirm(true)}
-            >
-              Verwijder alle prompts
-            </button>
-          )}
-          {chats.length > 0 && (
-            <button
-              className={styles.deleteAllButton}
-              onClick={() => setShowDeleteAllConfirm(true)}
-            >
-              Verwijder alle chats
-            </button>
-          )}
-          {(prompts.length > 0 || chats.length > 0) && (
-            <button
-              className={styles.deleteAllButton}
-              onClick={() => setShowDeleteAllEverythingConfirm(true)}
-            >
-              Verwijder alles
-            </button>
-          )}
+          <DeleteButton
+            onClick={() => setShowDeleteAllEverythingConfirm(true)}
+            ariaLabel="Verwijder alles"
+            title="Verwijder alles"
+            size={18}
+          />
         </div>
       )}
-      {showDeleteAllConfirm && (
-        <div className={styles.confirmDialogOverlay} onClick={() => setShowDeleteAllConfirm(false)}>
-          <div className={styles.confirmDialog} onClick={(e) => e.stopPropagation()}>
-            <h3>Weet je het zeker?</h3>
-            <p>Alle chats worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.</p>
-            <div className={styles.confirmDialogActions}>
-              <button
-                className={styles.confirmButton}
-                onClick={handleDeleteAllChats}
-              >
-                Verwijderen
-              </button>
-              <button
-                className={styles.cancelButton}
-                onClick={() => setShowDeleteAllConfirm(false)}
-              >
-                Annuleren
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showDeleteAllPromptsConfirm && (
-        <div className={styles.confirmDialogOverlay} onClick={() => setShowDeleteAllPromptsConfirm(false)}>
-          <div className={styles.confirmDialog} onClick={(e) => e.stopPropagation()}>
-            <h3>Weet je het zeker?</h3>
-            <p>Alle prompts worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.</p>
-            <div className={styles.confirmDialogActions}>
-              <button
-                className={styles.confirmButton}
-                onClick={handleDeleteAllPrompts}
-              >
-                Verwijderen
-              </button>
-              <button
-                className={styles.cancelButton}
-                onClick={() => setShowDeleteAllPromptsConfirm(false)}
-              >
-                Annuleren
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showDeleteAllEverythingConfirm && (
-        <div className={styles.confirmDialogOverlay} onClick={() => setShowDeleteAllEverythingConfirm(false)}>
-          <div className={styles.confirmDialog} onClick={(e) => e.stopPropagation()}>
-            <h3>Weet je het zeker?</h3>
-            <p>Alle chats en prompts worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt.</p>
-            <div className={styles.confirmDialogActions}>
-              <button
-                className={styles.confirmButton}
-                onClick={handleDeleteAll}
-              >
-                Verwijderen
-              </button>
-              <button
-                className={styles.cancelButton}
-                onClick={() => setShowDeleteAllEverythingConfirm(false)}
-              >
-                Annuleren
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={showDeleteAllConfirm}
+        message="Weet je zeker dat je alle chats wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+        onConfirm={handleDeleteAllChats}
+        onCancel={() => setShowDeleteAllConfirm(false)}
+      />
+      <ConfirmDialog
+        isOpen={showDeleteAllPromptsConfirm}
+        message="Weet je zeker dat je alle prompts wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
+        onConfirm={handleDeleteAllPrompts}
+        onCancel={() => setShowDeleteAllPromptsConfirm(false)}
+      />
+      <ConfirmDialog
+        isOpen={showDeleteAllEverythingConfirm}
+        message="Weet je zeker dat je alles wilt verwijderen? Alle chats en prompts worden permanent verwijderd. Deze actie kan niet ongedaan worden gemaakt."
+        onConfirm={handleDeleteAll}
+        onCancel={() => setShowDeleteAllEverythingConfirm(false)}
+      />
       <PromptEditor
         isOpen={showPromptEditor}
         onClose={() => {
@@ -721,4 +446,3 @@ export function ChatList({ selectedChatId, onChatSelect, onNewChat, isExpanded =
     </div>
   );
 }
-

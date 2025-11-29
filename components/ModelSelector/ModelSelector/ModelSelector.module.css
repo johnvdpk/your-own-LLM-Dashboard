@@ -91,10 +91,21 @@
   gap: var(--spacing-xs);
 }
 
+.modelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
 .modelName {
   font-weight: 600;
   font-size: var(--font-md);
   color: var(--foreground);
+}
+
+.badge {
+  font-size: var(--font-sm);
+  opacity: 0.7;
 }
 
 .modelDescription {

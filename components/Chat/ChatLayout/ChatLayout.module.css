@@ -46,6 +46,24 @@
   background-color: var(--input-bg);
 }
 
+.greeting {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex: 1;
+  justify-content: center;
+}
+
+.greetingIcon {
+  font-size: 1rem;
+}
+
+.greetingText {
+  font-size: var(--font-sm);
+  color: var(--foreground);
+  font-weight: 500;
+}
+
 .menuToggle {
   width: 48px;
   height: 48px;

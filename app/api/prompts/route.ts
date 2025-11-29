@@ -1,7 +1,11 @@
+// Next.js imports
 import { NextRequest, NextResponse } from 'next/server';
 
+// Internal imports
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+
+// Type imports
 import type { PromptsApiResponse, CreatePromptRequest, CreatePromptResponse, DeletePromptsResponse, ApiErrorResponse } from '@/types/api';
 
 /**
@@ -15,10 +19,10 @@ export async function GET(
   try {
     const session = await auth();
 
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
+    if (!session?.user?.id) {
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -34,9 +38,9 @@ export async function GET(
     return NextResponse.json<PromptsApiResponse>({ prompts });
   } catch (error) {
     console.error('Error fetching prompts:', error);
-    return NextResponse.json(
+    return NextResponse.json<ApiErrorResponse>(
       { error: 'Failed to fetch prompts' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -52,10 +56,10 @@ export async function POST(
   try {
     const session = await auth();
 
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
+    if (!session?.user?.id) {
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -63,16 +67,16 @@ export async function POST(
     const { title, content } = body;
 
     if (!title || typeof title !== 'string' || title.trim().length === 0) {
-      return NextResponse.json(
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Title is required and must be a non-empty string' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!content || typeof content !== 'string' || content.trim().length === 0) {
-      return NextResponse.json(
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Content is required and must be a non-empty string' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -87,9 +91,9 @@ export async function POST(
     return NextResponse.json<CreatePromptResponse>({ prompt }, { status: 201 });
   } catch (error) {
     console.error('Error creating prompt:', error);
-    return NextResponse.json(
+    return NextResponse.json<ApiErrorResponse>(
       { error: 'Failed to create prompt' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -105,10 +109,10 @@ export async function DELETE(
   try {
     const session = await auth();
 
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
+    if (!session?.user?.id) {
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -119,15 +123,15 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json<DeletePromptsResponse>({ 
-      success: true, 
-      deletedCount: result.count 
+    return NextResponse.json<DeletePromptsResponse>({
+      success: true,
+      deletedCount: result.count,
     });
   } catch (error) {
     console.error('Error deleting all prompts:', error);
-    return NextResponse.json(
+    return NextResponse.json<ApiErrorResponse>(
       { error: 'Failed to delete all prompts' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

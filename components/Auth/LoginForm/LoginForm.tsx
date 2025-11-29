@@ -1,8 +1,11 @@
 'use client';
 
+// React/Next.js imports
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+
+// CSS modules
 import styles from './LoginForm.module.css';
 
 interface LoginFormProps {
@@ -17,7 +20,12 @@ export function LoginForm({ onSwitchToRegister, onSwitchToForgotPassword }: Logi
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  /**
+   * Handle form submission
+   * @param e - Form event
+   * @returns Promise that resolves when login is complete
+   */
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     setError('');
     setLoading(true);

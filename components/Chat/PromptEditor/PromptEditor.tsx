@@ -1,6 +1,9 @@
 'use client';
 
+// React/Next.js imports
 import { useState, useEffect } from 'react';
+
+// CSS modules
 import styles from './PromptEditor.module.css';
 
 interface PromptEditorProps {
@@ -32,7 +35,12 @@ export function PromptEditor({ isOpen, onClose, onSave, initialTitle, initialCon
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  /**
+   * Handle form submission
+   * @param e - Form event
+   * @returns Promise that resolves when prompt is saved
+   */
+  const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     
     if (!title.trim() || !content.trim()) {
@@ -52,7 +60,11 @@ export function PromptEditor({ isOpen, onClose, onSave, initialTitle, initialCon
     }
   };
 
-  const handleCancel = () => {
+  /**
+   * Handle cancel action
+   * @returns void
+   */
+  const handleCancel = (): void => {
     setTitle('');
     setContent('');
     onClose();

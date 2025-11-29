@@ -12,9 +12,23 @@ export function getOpenRouterHeaders() {
   };
 }
 
+export type ChatMessageContent = 
+  | string 
+  | Array<{
+      type: 'text' | 'image_url' | 'file';
+      text?: string;
+      image_url?: {
+        url: string;
+      };
+      file?: {
+        url: string;
+        filename?: string;
+      };
+    }>;
+
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
-  content: string;
+  content: ChatMessageContent;
 }
 
 export interface ChatCompletionOptions {

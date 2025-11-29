@@ -1,9 +1,12 @@
 'use client';
 
+// React/Next.js imports
 import { useState, useEffect, useRef } from 'react';
 
+// Component imports
 import { ModelSelector } from '@/components/ModelSelector/ModelSelector/ModelSelector';
 
+// CSS modules
 import styles from './ChatInput.module.css';
 
 interface Prompt {
@@ -31,26 +34,35 @@ export function ChatInput({ onSend, disabled, selectedModel, onModelChange }: Ch
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [suggestion, setSuggestion] = useState<string>('');
   const [showSuggestion, setShowSuggestion] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Load prompts on mount
   useEffect(() => {
     loadPrompts();
   }, []);
 
-  const loadPrompts = async () => {
+  /**
+   * Load prompts from API
+   * @returns Promise that resolves when prompts are loaded
+   */
+  const loadPrompts = async (): Promise<void> => {
     try {
       const response = await fetch('/api/prompts');
       if (response.ok) {
-        const data = await response.json();
-        setPrompts(data.prompts || []);
+        const data = await response.json() as { prompts: Prompt[] };
+        setPrompts(data.prompts ?? []);
       }
     } catch (error) {
       console.error('Error loading prompts:', error);
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /**
+   * Handle input change and show prompt suggestions
+   * @param e - Change event from textarea
+   * @returns void
+   */
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>): void => {
     const value = e.target.value;
     setInput(value);
 
@@ -94,7 +106,25 @@ export function ChatInput({ onSend, disabled, selectedModel, onModelChange }: Ch
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  /**
+   * Handle keyboard events (Enter to submit, Tab to complete suggestion)
+   * @param e - Keyboard event from textarea
+   * @returns void
+   */
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>): void => {
+    // Shift+Enter allows new line (default behavior)
+    // Enter key to submit (unless Shift is pressed)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (input.trim() && !disabled) {
+        onSend(input.trim());
+        setInput('');
+        setSuggestion('');
+        setShowSuggestion(false);
+      }
+      return;
+    }
+
     // Tab key to complete suggestion
     if (e.key === 'Tab' && showSuggestion && suggestion) {
       e.preventDefault();
@@ -127,19 +157,27 @@ export function ChatInput({ onSend, disabled, selectedModel, onModelChange }: Ch
     }
   };
 
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
+    }
+  }, [input]);
+
   return (
     <form onSubmit={handleSubmit} className={styles.form} suppressHydrationWarning>
       <div className={styles.inputWrapper}>
         <div className={styles.inputContainer}>
-          <input
-            ref={inputRef}
-            type="text"
+          <textarea
+            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
             value={input}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
+            onChange={handleInputChange as (e: React.ChangeEvent<HTMLTextAreaElement>) => void}
+            onKeyDown={handleKeyDown as (e: React.KeyboardEvent<HTMLTextAreaElement>) => void}
             placeholder="What do you want to know?"
             disabled={disabled}
             className={styles.input}
+            rows={1}
             suppressHydrationWarning
           />
           {showSuggestion && suggestion && (

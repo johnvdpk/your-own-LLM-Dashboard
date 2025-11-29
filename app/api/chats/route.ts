@@ -1,7 +1,11 @@
+// Next.js imports
 import { NextRequest, NextResponse } from 'next/server';
 
+// Internal imports
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+
+// Type imports
 import type { ChatsApiResponse, CreateChatRequest, CreateChatResponse, DeleteChatsResponse, ApiErrorResponse } from '@/types/api';
 
 /**
@@ -15,10 +19,10 @@ export async function GET(
   try {
     const session = await auth(); 
 
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
+    if (!session?.user?.id) {
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -39,9 +43,9 @@ export async function GET(
     return NextResponse.json<ChatsApiResponse>({ chats });
   } catch (error) {
     console.error('Error fetching chats:', error);
-    return NextResponse.json(
+    return NextResponse.json<ApiErrorResponse>(
       { error: 'Failed to fetch chats' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -57,10 +61,10 @@ export async function POST(
   try {
     const session = await auth();
 
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
+    if (!session?.user?.id) {
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -78,9 +82,9 @@ export async function POST(
     return NextResponse.json<CreateChatResponse>({ chat }, { status: 201 });
   } catch (error) {
     console.error('Error creating chat:', error);
-    return NextResponse.json(
+    return NextResponse.json<ApiErrorResponse>(
       { error: 'Failed to create chat' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -96,10 +100,10 @@ export async function DELETE(
   try {
     const session = await auth();
 
-    if (!session || !session.user?.id) {
-      return NextResponse.json(
+    if (!session?.user?.id) {
+      return NextResponse.json<ApiErrorResponse>(
         { error: 'Unauthorized' },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -110,15 +114,15 @@ export async function DELETE(
       },
     });
 
-    return NextResponse.json<DeleteChatsResponse>({ 
-      success: true, 
-      deletedCount: result.count 
+    return NextResponse.json<DeleteChatsResponse>({
+      success: true,
+      deletedCount: result.count,
     });
   } catch (error) {
     console.error('Error deleting all chats:', error);
-    return NextResponse.json(
+    return NextResponse.json<ApiErrorResponse>(
       { error: 'Failed to delete all chats' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

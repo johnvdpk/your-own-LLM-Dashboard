@@ -1,7 +1,10 @@
 'use client';
 
+// React/Next.js imports
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+
+// CSS modules
 import styles from './ResetPasswordForm.module.css';
 
 export function ResetPasswordForm() {

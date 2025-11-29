@@ -7,7 +7,6 @@
   padding: 0;
   gap: var(--spacing-sm);
   overflow-y: auto;
- 
 }
 
 .chatList.collapsed {
@@ -18,13 +17,24 @@
   align-items: flex-start;
 }
 
-.title {
+.titleContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--spacing-md);
+  border-bottom: 1px solid var(--border-color);
+  width: 100%;
+}
+
+.title {
   margin: 0;
   font-size: var(--font-lg);
   font-weight: 600;
   color: var(--foreground);
-  border-bottom: 1px solid var(--border-color);
+}
+
+.chatList.collapsed .title {
+  display: none;
 }
 
 .newChatButtonWrapper {
@@ -42,8 +52,22 @@
   justify-content: flex-start;
 }
 
-.chatList.collapsed .title {
-  display: none;
+.chatItems {
+  flex: 1;
+  overflow-y: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm) 0;
+}
+
+.chatList.collapsed .chatItems {
+  align-items: center;
+}
+
+.chatList.expanded .chatItems {
+  align-items: stretch;
 }
 
 .promptItems {
@@ -83,215 +107,25 @@
   align-items: stretch;
 }
 
-.promptItemWrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.chatList.collapsed .promptItemWrapper {
-  justify-content: center;
-  width: 48px;
-}
-
-.chatList.expanded .promptItemWrapper {
-  width: 100%;
-}
-
-.promptItem {
-  padding: 0;
-  background: transparent;
-  border: none;
-  cursor: default;
-  display: flex;
-  align-items: center;
-  border-radius: var(--radius-md);
-  transition: background-color var(--transition-base);
-  position: relative;
-  flex: 1;
-}
-
-.chatList.collapsed .promptItem {
-  width: 48px;
-  height: 48px;
-  justify-content: center;
-}
-
-.chatList.expanded .promptItem {
-  width: 100%;
+.promptButtonWrapper {
   padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
   justify-content: flex-start;
-  gap: var(--spacing-sm);
+  border-top: 1px solid var(--border-color);
 }
 
-.promptItem:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.promptIcon {
-  width: 24px;
-  height: 24px;
-  color: var(--foreground);
-  flex-shrink: 0;
-}
-
-.promptItemContent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  flex: 1;
-  min-width: 0;
-}
-
-.chatList.collapsed .promptItemContent {
-  display: none;
-}
-
-.promptItemTitle {
-  font-size: var(--font-sm);
-  font-weight: 500;
-  color: var(--foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.promptItemActions {
-  position: absolute;
-  right: var(--spacing-sm);
-  display: flex;
-  align-items: center;
-  z-index: 10;
-}
-
-.chatItems {
-  flex: 1;
-  overflow-y: auto;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+.chatList.collapsed .promptButtonWrapper {
+  justify-content: center;
   padding: var(--spacing-sm) 0;
 }
 
-.chatList.collapsed .chatItems {
-  align-items: center;
-}
-
-.chatList.expanded .chatItems {
-  align-items: stretch;
-}
-
-.chatItemWrapper {
-  position: relative;
+.deleteAllWrapper {
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--border-color);
+  margin-top: auto;
   display: flex;
-  align-items: center;
-}
-
-.chatList.collapsed .chatItemWrapper {
   justify-content: center;
-  width: 48px;
-}
-
-.chatList.expanded .chatItemWrapper {
-  width: 100%;
-}
-
-.chatItemWrapper.active .chatItem {
-  background-color: rgba(123, 156, 135, 0.1);
-}
-
-.chatItem {
-  padding: 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
   align-items: center;
-  border-radius: var(--radius-md);
-  transition: background-color var(--transition-base);
-  position: relative;
-  flex: 1;
-}
-
-.chatList.collapsed .chatItem {
-  width: 48px;
-  height: 48px;
-  justify-content: center;
-}
-
-.chatList.expanded .chatItem {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  justify-content: flex-start;
-  gap: var(--spacing-sm);
-}
-
-.chatItem:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.chatItem.active {
-  background-color: rgba(123, 156, 135, 0.1);
-}
-
-.chatItem.active::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 24px;
-  background-color: var(--accent);
-  border-radius: 0 2px 2px 0;
-}
-
-.chatIcon {
-  width: 24px;
-  height: 24px;
-  color: var(--foreground);
-  flex-shrink: 0;
-}
-
-.chatItem.active .chatIcon {
-  color: var(--accent);
-}
-
-.chatItemContent {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-  flex: 1;
-  min-width: 0;
-}
-
-.chatList.collapsed .chatItemContent {
-  display: none;
-}
-
-.chatItemTitle {
-  font-size: var(--font-sm);
-  font-weight: 500;
-  color: var(--foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.chatItemMeta {
-  font-size: var(--font-xs);
-  color: var(--text-secondary);
-}
-
-.chatIcon {
-  width: 24px;
-  height: 24px;
-  color: var(--foreground);
-}
-
-.chatItem.active .chatIcon {
-  color: var(--accent);
 }
 
 .empty {
@@ -311,189 +145,3 @@
   color: var(--text-secondary);
   font-size: var(--font-sm);
 }
-
-.chatItemActions {
-  position: absolute;
-  right: var(--spacing-sm);
-  display: flex;
-  align-items: center;
-  z-index: 10;
-}
-
-.menuButton {
-  padding: var(--spacing-xs);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  color: var(--text-secondary);
-  transition: background-color var(--transition-base), color var(--transition-base);
-}
-
-.menuButton:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-  color: var(--foreground);
-}
-
-.menuDropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: var(--spacing-xs);
-  background: var(--background);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  min-width: 160px;
-  z-index: 20;
-  overflow: hidden;
-}
-
-.menuItem {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: transparent;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  font-size: var(--font-sm);
-  color: var(--foreground);
-  transition: background-color var(--transition-base);
-}
-
-.menuItem:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
-.menuItem:first-child {
-  border-bottom: 1px solid var(--border-color);
-}
-
-.editInput {
-  width: 100%;
-  padding: 0;
-  background: transparent;
-  border: 1px solid var(--accent);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-sm);
-  font-weight: 500;
-  color: var(--foreground);
-  outline: none;
-  padding: 2px var(--spacing-xs);
-}
-
-.promptButtonWrapper {
-  padding: var(--spacing-sm) var(--spacing-md);
-  display: flex;
-  justify-content: flex-start;
-  border-top: 1px solid var(--border-color);
-}
-
-.chatList.collapsed .promptButtonWrapper {
-  justify-content: center;
-  padding: var(--spacing-sm) 0;
-}
-
-.deleteAllWrapper {
-  padding: var(--spacing-md);
-  border-top: 1px solid var(--border-color);
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
-}
-
-.deleteAllButton {
-  width: 100%;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: transparent;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-  transition: background-color var(--transition-base), color var(--transition-base), border-color var(--transition-base);
-}
-
-.deleteAllButton:hover {
-  background-color: rgba(220, 38, 38, 0.1);
-  color: rgb(220, 38, 38);
-  border-color: rgba(220, 38, 38, 0.3);
-}
-
-.confirmDialogOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.confirmDialog {
-  background: var(--background);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-}
-
-.confirmDialog h3 {
-  margin: 0 0 var(--spacing-md) 0;
-  font-size: var(--font-lg);
-  font-weight: 600;
-  color: var(--foreground);
-}
-
-.confirmDialog p {
-  margin: 0 0 var(--spacing-lg) 0;
-  font-size: var(--font-sm);
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
-
-.confirmDialogActions {
-  display: flex;
-  gap: var(--spacing-sm);
-  justify-content: flex-end;
-}
-
-.confirmButton,
-.cancelButton {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  font-size: var(--font-sm);
-  cursor: pointer;
-  transition: background-color var(--transition-base), color var(--transition-base);
-  border: 1px solid transparent;
-}
-
-.confirmButton {
-  background: rgb(220, 38, 38);
-  color: white;
-  border-color: rgb(220, 38, 38);
-}
-
-.confirmButton:hover {
-  background: rgb(185, 28, 28);
-  border-color: rgb(185, 28, 28);
-}
-
-.cancelButton {
-  background: transparent;
-  color: var(--foreground);
-  border-color: var(--border-color);
-}
-
-.cancelButton:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-}
-
